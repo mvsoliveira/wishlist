@@ -1,0 +1,18 @@
+---
+name: L1CaloGfex
+description: IPbus address table for the L1Calo gFEX zynq FPGA
+address: 0xA0010000
+address_width: 32
+address_increment: 4
+address_size: 2**16
+software_path: ../examples/
+firmware_path: ../examples/
+children:
+  - {name: CTEST_REG, width: 32, mode: rw, description: A register for testing the AXI interface.}
+  - name: N_BCRD_CTRL
+    description: Number of BCs read out on specific links, must write before enabling data flow.
+    children:
+      - {name: TWR_LNKS, width: 14, mode: rw, description: "[31:23] reserved. number of BCs for input links (not implemented in fw)"}
+      - {name: GLBL_LNKS, width: 7, mode: rw, description: "[11:0] number of BCs for JET links"}
+      - {name: JET_LNKS, width: 9, mode: rw, description: "[23:12] number of BCs for MET links"}
+

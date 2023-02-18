@@ -1,0 +1,3 @@
+pandas~=1.5.3
+bigtree~=0.7.2
+PyYAML~=6.0
