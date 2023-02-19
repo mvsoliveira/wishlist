@@ -1,0 +1,50 @@
+-- package name: {{ name }}_pkg
+-- description : {{ description }}
+
+package {{ name }}_pkg is
+
+-- register data types
+{# Iterating through registers #}
+{%- for register in registers %}
+    {#- Checking if it is a std_logic_vector #}
+    {%- if register.width > 1 %}
+subtype {{ get_full_name(register)}}_subtype is std_logic_vector({{ register.width-1 }} downto 0);
+    {#- Checking if it is a std_logic #}
+    {%- elif register.width == 1 %}
+subtype {{ get_full_name(register)}}_subtype is std_logic;
+    {%- endif %}
+    {#- Checking if there is an array associated to it #}
+    {%- if register.length is defined %}
+type {{ get_full_name(register)}}_array_type is array ({{ register.length-1 }} downto 0) of {{ get_full_name(register)}}_subtype;
+    {%- endif %}
+{%- endfor %}
+
+{#- Iterating status and control registers #}
+{% for permission,direction in (('r','status'),('rw','control')) %}
+-- {{ direction }} hierarchy data types
+    {#- Iterating through hierarchies #}
+    {% for hierarchy in hierarchies %}
+        {#- Checking if there are descendants with the required permission value #}
+        {%- if attr_in_children(hierarchy,'permission',permission) %}
+{#- Opening the record declaration #}
+type {{ get_full_name(hierarchy) }}_{{ direction }}_record_type is record
+            {#- Iterate thorugh each child of an hierarchical node #}
+            {%- for child in hierarchy.children %}
+                {#- Checking if itself or descendants have the required permission value #}
+                {%- if attr_in_family(child,'permission',permission) %}
+    {#- Adding member to record with type depending on both children and length attrivutes of the child #}
+    {{ child.name }} : {{get_full_name(child)}}{{ ('','_record')[child.children != ()] }}{{ ('','_array')[child.length is defined] }}{{ ('_subtype','_type')[child.children != () or child.length is defined] }};
+                {%- endif %}
+            {%- endfor %}
+{#- Closing the record declaration #}
+end record {{ get_full_name(hierarchy) }}_{{ direction }}_record_type;
+            {#- Checking if there is an array associated to this record #}
+            {%- if hierarchy.length is defined %}
+type {{ get_full_name(hierarchy) }}_{{ direction }}_record_array_type is array ({{ hierarchy.length-1 }} downto 0) of {{ get_full_name(hierarchy) }}_{{ direction }}_record_type;
+            {%- endif %}
+        {%- endif %}
+    {% endfor %}
+{% endfor %}
+
+end package {{ name }}_pkg;
+

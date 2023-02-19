@@ -55,9 +55,10 @@ class wishlist:
     def generate_vhdl_package_file(self):
         environment = Environment(loader=FileSystemLoader("../templates/"))
         environment.globals['attr_in_children'] = attr_in_children
+        environment.globals['attr_in_family'] = attr_in_family
         environment.globals['get_full_name'] = get_full_name
 
-        template = environment.get_template("package.vhdt")
+        template = environment.get_template("vhdl_package.jinja2")
         filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name']}_pkg.vhd"
         content = template.render(self.wishlist_dict,
                                   registers=list(self.register_nodes_iter()),
