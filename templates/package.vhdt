@@ -1,0 +1,33 @@
+-- package name: {{ name }}_pkg
+-- description : {{ description }}
+
+package {{ name }}_pkg is
+
+-- register data types
+{%- for register in registers %}
+    {%- if register.width > 1 %}
+subtype {{ get_full_name(register)}}_type is std_logic_vector({{ register.width-1 }} downto 0);
+    {%- elif register.width == 1 %}
+subtype {{ get_full_name(register)}}_type is std_logic;
+    {%- endif %}
+{%- endfor %}
+
+{% for permission,direction in (('r','status'),('rw','control')) %}
+-- {{ direction }} hierarchy data types
+    {% for hierarchy in hierarchies %}
+        {%- if attr_in_children(hierarchy,'permission',permission) %}
+type {{ get_full_name(hierarchy) }}_{{ direction }}_record is record
+            {%- for child in hierarchy.children %}
+                {%- if child.permission == permission %}
+    {{ child.name }} : {{get_full_name(child)}}_type;
+                {%- elif attr_in_children(child,'permission',permission) %}
+    {{ child.name }} : {{get_full_name(child)}}_{{ direction }}_record;
+                {%- endif %}
+            {%- endfor %}
+end record {{ get_full_name(hierarchy) }}_{{ direction }}_record;
+        {%- endif %}
+    {% endfor %}
+{% endfor %}
+
+end package {{ name }}_pkg;
+
