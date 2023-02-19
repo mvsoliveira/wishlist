@@ -1,5 +1,5 @@
 import pandas
-from bigtree import nested_dict_to_tree, print_tree, findall, prune_tree, find_attrs, postorder_iter
+from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_iter
 import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
@@ -47,7 +47,7 @@ class wishlist:
         print_tree(self.tree, attr_list=['width', 'permission'])
 
     def register_nodes_iter(self):
-        return postorder_iter(self.tree, filter_condition=lambda node: node.children == ())
+        return preorder_iter(self.tree, filter_condition=lambda node: node.children == ())
 
     def hierarchical_nodes_iter(self):
         return postorder_iter(self.tree, filter_condition=lambda node: node.children != ())
