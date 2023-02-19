@@ -33,8 +33,11 @@ type {{ get_full_name(hierarchy) }}_{{ direction }}_record_type is record
             {%- for child in hierarchy.children %}
                 {#- Checking if itself or descendants have the required permission value #}
                 {%- if attr_in_family(child,'permission',permission) %}
+                    {%- set record = ('','_record')[child.children != ()] %}
+                    {%- set array = ('','_array')[child.length is defined] %}
+                    {%- set type = ('_subtype','_type')[child.children != () or child.length is defined] %}
     {#- Adding member to record with type depending on both children and length attrivutes of the child #}
-    {{ child.name }} : {{get_full_name(child)}}{{ ('','_record')[child.children != ()] }}{{ ('','_array')[child.length is defined] }}{{ ('_subtype','_type')[child.children != () or child.length is defined] }};
+    {{ child.name }} : {{get_full_name(child)}}{{ record }}{{ array }}{{ type }};
                 {%- endif %}
             {%- endfor %}
 {#- Closing the record declaration #}

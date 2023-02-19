@@ -44,7 +44,7 @@ class wishlist:
 
     def create_tree(self):
         self.tree = nested_dict_to_tree(self.wishlist_dict)
-        print_tree(self.tree, attr_list=['width', 'permission'])
+        print_tree(self.tree, attr_list=['width', 'length', 'permission'])
 
     def register_nodes_iter(self):
         return preorder_iter(self.tree, filter_condition=lambda node: node.children == ())
