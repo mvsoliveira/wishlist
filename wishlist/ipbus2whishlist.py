@@ -1,5 +1,5 @@
 import xmltodict
-from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_iter, shift_nodes, tree_to_nested_dict
+from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
 import json
 import yaml
 
@@ -35,7 +35,6 @@ for old,new in replacements.items():
 # generating tree from xml
 xml_tree = json.loads(xml_str)['children']
 tree = nested_dict_to_tree(xml_tree)
-print_tree(tree, attr_list=['width', 'length', 'permission'])
 
 # copying permission parameter from parents to only tree leaves and assigning default value for leaves without
 str2int = lambda v : int(v,16) if v.startswith('0x') else int(v,10)
@@ -52,18 +51,17 @@ for leaf in preorder_iter(tree, filter_condition=lambda node: node.is_leaf):
     # defining width based on mask
     if hasattr(leaf, 'mask'):
         mask = str2int(leaf.mask)
-        mask_str = f'{mask:b}'
-        leaf.width = mask_str.count('1')
+        leaf.width = f'{mask:b}'.count('1')
     else:
         # assigning default width value when mask is not defined
         leaf.width = default_width
+    # deleting mask attribute when defined
     if hasattr(leaf, 'mask'): delattr(leaf, 'mask')
+    # writing down non-supported nodes
     if hasattr(leaf, 'module'): not_supported_nodes.append(leaf.path_name)
-
 
 # removing non-supported nodes
 shift_nodes(tree,not_supported_nodes, [None]*len(not_supported_nodes))
-
 
 min_address = 2**maximum_width-1
 # iterating though all nodes
@@ -80,12 +78,12 @@ for node in preorder_iter(tree):
 # Setting minimum address of all nodes as the root address
 tree.address = min_address
 # Setting default values for
-for key,value in default_root_attrs.items():
+for key, value in default_root_attrs.items():
     setattr(tree,key,value)
 print_tree(tree, attr_list=['width', 'length', 'permission', 'mask', 'address'])
 
+# Dumping tree to yaml file
 tree_dict = tree_to_nested_dict(tree, all_attrs=True)
 with open(xml_filename.replace('xml','yaml'), 'w') as file:
     yaml.dump(tree_dict, file, sort_keys=False)
 
-print()

@@ -34,7 +34,6 @@ class wishlist:
         with open(self.wishlist_file, "r") as stream:
             try:
                 self.wishlist_dict = yaml.safe_load(stream)
-                print(json.dumps(self.wishlist_dict, indent=2))
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
 
