@@ -1,0 +1,169 @@
+name: L1CaloGfex
+address: 2684420096
+address_increment: 4
+address_size: 65536
+address_width: 32
+description: IPbus address table for the L1Calo gFEX zynq FPGA
+firmware_path: ../examples
+software_path: ../examples
+children:
+- name: CTEST_REG
+  description: A register for testing the AXI interface.
+  permission: rw
+  width: 32
+- name: N_BCRD_CTRL
+  description: Number of BCs read out on specific links, must write before enabling
+    data flow.
+  children:
+  - name: GLBL_LNKS
+    description: '[11:0] number of BCs for JET links'
+    permission: rw
+    width: 9
+  - name: JET_LNKS
+    description: '[23:12] number of BCs for MET links'
+    permission: rw
+    width: 9
+  - name: TWR_LNKS
+    description: '[31:23] reserved. number of BCs for input links (not implemented
+      in fw)'
+    permission: rw
+    width: 14
+- name: GBT_CTRL
+  description: GBT control register.
+  children:
+  - name: SYNC
+    description: Synchronization signal. 0=start sync, 1=release sync for data taking.
+    permission: rw
+    width: 1
+  - name: RST
+    description: Software generated system reset bit.
+    permission: rw
+    width: 1
+- name: ECR_CTRL
+  description: '[29] = ECR counter update, [28] = ECR counter clear, [7:0] = ECR counter
+    value'
+  children:
+  - name: VALUE
+    description: ECR counter value
+    permission: rw
+    width: 8
+  - name: CLEAR
+    description: ECR counter clear.
+    permission: rw
+    width: 1
+  - name: UPDATE
+    description: ECR counter update.
+    permission: rw
+    width: 1
+- name: DATE_TIME
+  description: Date and Time Register.
+  permission: r
+  width: 32
+- name: GIT_HASH
+  description: Git hash register.
+  permission: r
+  width: 32
+- name: FW_VER_CODE
+  description: Firmware version of tagged releases
+  permission: r
+  width: 32
+- name: AIPB_TX_CTRL
+  description: pFGPA A SCR transmit control register
+  permission: rw
+  width: 32
+- name: AIPB_TX_DATA
+  description: pFGPA A SCR transmit data register
+  permission: rw
+  width: 32
+- name: BIPB_TX_CTRL
+  description: pFGPA B SCR transmit control register
+  permission: rw
+  width: 32
+- name: BIPB_TX_DATA
+  description: pFGPA B SCR transmit data register
+  permission: rw
+  width: 32
+- name: CIPB_TX_CTRL
+  description: pFGPA C SCR transmit control register
+  permission: rw
+  width: 32
+- name: CIPB_TX_DATA
+  description: pFGPA C SCR transmit data register
+  permission: rw
+  width: 32
+- name: AIPB_RX_CTRL
+  description: pFGPA A SCR receive control register
+  permission: rw
+  width: 32
+- name: BIPB_RX_CTRL
+  description: pFGPA B SCR receive control register
+  permission: rw
+  width: 32
+- name: CIPB_RX_CTRL
+  description: pFGPA C SCR receive control register
+  permission: rw
+  width: 32
+- name: ZIPB_TX_CTRL
+  description: Zynq Streaming SCR transmit control register
+  permission: rw
+  width: 32
+- name: ZIPB_TX_DATA
+  description: Zynq Streaming SCR transmit data register
+  permission: rw
+  width: 32
+- name: ZIPB_RX_CTRL
+  description: Zynq Streaming SCR receive control register
+  permission: rw
+  width: 32
+- name: AIPB_TX_STAT
+  description: pFGPA A SCR transmit status register
+  permission: r
+  width: 32
+- name: BIPB_TX_STAT
+  description: pFGPA B SCR transmit status register
+  permission: r
+  width: 32
+- name: CIPB_TX_STAT
+  description: pFGPA C SCR transmit status register
+  permission: r
+  width: 32
+- name: AIPB_RX_STAT
+  description: pFGPA A SCR receive status register
+  permission: r
+  width: 32
+- name: AIPB_RX_DATA
+  description: pFGPA A SCR receive data register
+  permission: r
+  width: 32
+- name: BIPB_RX_STAT
+  description: pFGPA B SCR receive status register
+  permission: r
+  width: 32
+- name: BIPB_RX_DATA
+  description: pFGPA B SCR receive data register
+  permission: r
+  width: 32
+- name: CIPB_RX_STAT
+  description: pFGPA C SCR receive status register
+  permission: r
+  width: 32
+- name: CIPB_RX_DATA
+  description: pFGPA C SCR receive data register
+  permission: r
+  width: 32
+- name: ZIPB_TX_STAT
+  description: Zynq Streaming SCR transmit status register
+  permission: r
+  width: 32
+- name: ZIPB_RX_STAT
+  description: Zynq Streaming SCR receive status register
+  permission: r
+  width: 32
+- name: ZIPB_RX_DATA
+  description: Zynq Streaming SCR receive data register
+  permission: r
+  width: 32
+- name: INIT_STAT
+  description: Status of global reset, 0x14 on done
+  permission: r
+  width: 32

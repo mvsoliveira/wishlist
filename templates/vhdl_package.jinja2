@@ -26,7 +26,7 @@ type {{ get_full_name(register)}}_array_type is array ({{ register.length-1 }} d
     {#- Iterating through hierarchies #}
     {% for hierarchy in hierarchies %}
         {#- Checking if there are descendants with the required permission value #}
-        {%- if attr_in_children(hierarchy,'permission',permission) %}
+        {%- if attr_in_family(hierarchy,'permission',permission) %}
 {#- Opening the record declaration #}
 type {{ get_full_name(hierarchy) }}_{{ direction }}_record_type is record
             {#- Iterate thorugh each child of an hierarchical node #}
@@ -36,7 +36,7 @@ type {{ get_full_name(hierarchy) }}_{{ direction }}_record_type is record
                     {%- set record = ('','_record')[child.children != ()] %}
                     {%- set array = ('','_array')[child.length is defined] %}
                     {%- set type = ('_subtype','_type')[child.children != () or child.length is defined] %}
-    {#- Adding member to record with type depending on both children and length attrivutes of the child #}
+    {#- Adding member to record with type depending on both children and length attributes of the child #}
     {{ child.name }} : {{get_full_name(child)}}{{ record }}{{ array }}{{ type }};
                 {%- endif %}
             {%- endfor %}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<node id="L1CaloGfex" description="IPbus address table for the L1Calo gFEX zynq FPGA">
+
+  <node id="CTEST_REG" address="0xA0010000" permission="rw" description="A register for testing the AXI interface."/>
+
+  <node id="N_BCRD_CTRL" address="0xA001000C" permission="rw" description="Number of BCs read out on specific links, must write before enabling data flow.">
+    <node id="GLBL_LNKS" mask="0x0003FE00" description="[11:0] number of BCs for JET links"/>
+    <node id="JET_LNKS" mask="0x000001FF" description="[23:12] number of BCs for MET links"/>
+    <node id="TWR_LNKS" mask="0xFFFC0000" description="[31:23] reserved. number of BCs for input links (not implemented in fw)"/>
+  </node>
+
+  <node id="GBT_CTRL" address="0xA0010010" permission="rw" description="GBT control register."> 
+    <node id="SYNC" mask="0x2" description="Synchronization signal. 0=start sync, 1=release sync for data taking."/> 
+    <node id="RST" mask="0x4" description="Software generated system reset bit."/> 
+  </node>
+
+  <node id="ECR_CTRL" address="0xA0010014" permission="rw" description="[29] = ECR counter update, [28] = ECR counter clear, [7:0] = ECR counter value">
+    <node id="VALUE" mask="0x0000000FF" description="ECR counter value"/>
+    <node id="CLEAR" mask="0x10000000" description="ECR counter clear."/>
+    <node id="UPDATE" mask="0x20000000" description="ECR counter update."/>
+  </node>
+  
+  <node id="DATE_TIME" address="0xA0010100" permission="r" description="Date and Time Register."/>
+  <node id="GIT_HASH" address="0xA0010104" permission="r" description="Git hash register."/>
+  <node id="FW_VER_CODE" address="0xA0010108" permission="r" description="Firmware version of tagged releases"/>
+
+  <node id="AIPB_TX_CTRL" address="0xA0010020" permission="rw" description="pFGPA A SCR transmit control register"/>
+  <node id="AIPB_TX_DATA" address="0xA0010024" permission="rw" description="pFGPA A SCR transmit data register"/>
+  <node id="BIPB_TX_CTRL" address="0xA0010028" permission="rw" description="pFGPA B SCR transmit control register"/>
+  <node id="BIPB_TX_DATA" address="0xA001002C" permission="rw" description="pFGPA B SCR transmit data register"/>
+  <node id="CIPB_TX_CTRL" address="0xA0010030" permission="rw" description="pFGPA C SCR transmit control register"/>
+  <node id="CIPB_TX_DATA" address="0xA0010034" permission="rw" description="pFGPA C SCR transmit data register"/>
+  <node id="AIPB_RX_CTRL" address="0xA0010038" permission="rw" description="pFGPA A SCR receive control register"/>
+  <node id="BIPB_RX_CTRL" address="0xA001003C" permission="rw" description="pFGPA B SCR receive control register"/>
+  <node id="CIPB_RX_CTRL" address="0xA0010040" permission="rw" description="pFGPA C SCR receive control register"/>
+  <node id="ZIPB_TX_CTRL" address="0xA0010044" permission="rw" description="Zynq Streaming SCR transmit control register"/>
+  <node id="ZIPB_TX_DATA" address="0xA0010048" permission="rw" description="Zynq Streaming SCR transmit data register"/>
+  <node id="ZIPB_RX_CTRL" address="0xA001004C" permission="rw" description="Zynq Streaming SCR receive control register"/>
+  <node id="AIPB_TX_STAT" address="0xA0010110" permission="r" description="pFGPA A SCR transmit status register"/>
+  <node id="BIPB_TX_STAT" address="0xA0010114" permission="r" description="pFGPA B SCR transmit status register"/>
+  <node id="CIPB_TX_STAT" address="0xA0010118" permission="r" description="pFGPA C SCR transmit status register"/>
+  <node id="AIPB_RX_STAT" address="0xA001011C" permission="r" description="pFGPA A SCR receive status register"/>
+  <node id="AIPB_RX_DATA" address="0xA0010120" permission="r" description="pFGPA A SCR receive data register"/>
+  <node id="BIPB_RX_STAT" address="0xA0010124" permission="r" description="pFGPA B SCR receive status register"/>
+  <node id="BIPB_RX_DATA" address="0xA0010128" permission="r" description="pFGPA B SCR receive data register"/>
+  <node id="CIPB_RX_STAT" address="0xA001012C" permission="r" description="pFGPA C SCR receive status register"/>
+  <node id="CIPB_RX_DATA" address="0xA0010130" permission="r" description="pFGPA C SCR receive data register"/>
+  <node id="ZIPB_TX_STAT" address="0xA0010140" permission="r" description="Zynq Streaming SCR transmit status register"/>
+  <node id="ZIPB_RX_STAT" address="0xA0010144" permission="r" description="Zynq Streaming SCR receive status register"/>
+  <node id="ZIPB_RX_DATA" address="0xA0010148" permission="r" description="Zynq Streaming SCR receive data register"/>
+  <node id="INIT_STAT" address="0xA001014C" permission="r" description="Status of global reset, 0x14 on done"/>
+
+  <node id="FPGA_A" address="0x00000000" module="file://L1CaloGfexProcessor.xml" description="Processor FPGA A"/>
+  <node id="FPGA_B" address="0x20000000" module="file://L1CaloGfexProcessor.xml" description="Processor FPGA B"/>
+  <node id="FPGA_C" address="0x40000000" module="file://L1CaloGfexProcessor.xml" description="Processor FPGA C"/>
+  <node id="ZSTREAM" address="0x60000000" module="file://L1CaloGfexZynqStreaming.xml" description="Zynq Streaming Registers"/>
+  <node id="I2C" address="0x12C00000" module="file://L1CaloGfexI2C.xml" description="I2C Registers"/>
+
+</node>
+

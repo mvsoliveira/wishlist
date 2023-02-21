@@ -7,50 +7,134 @@ package L1CaloGfex_pkg is
 -- register data types
 
 subtype L1CaloGfex_CTEST_REG_subtype is std_logic_vector(31 downto 0);
-subtype L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_subtype is std_logic_vector(13 downto 0);
-type L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_array_type is array (4 downto 0) of L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_subtype;
-subtype L1CaloGfex_N_BCRD_CTRL_GLBL_LNKS_subtype is std_logic_vector(6 downto 0);
+subtype L1CaloGfex_N_BCRD_CTRL_GLBL_LNKS_subtype is std_logic_vector(8 downto 0);
 subtype L1CaloGfex_N_BCRD_CTRL_JET_LNKS_subtype is std_logic_vector(8 downto 0);
-subtype L1CaloGfex_N_BCRD_CTRL_test_subtype is std_logic;
-subtype L1CaloGfex_GIT_INFO_GIT_HASH_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_subtype is std_logic_vector(13 downto 0);
+subtype L1CaloGfex_GBT_CTRL_SYNC_subtype is std_logic;
+subtype L1CaloGfex_GBT_CTRL_RST_subtype is std_logic;
+subtype L1CaloGfex_ECR_CTRL_VALUE_subtype is std_logic_vector(7 downto 0);
+subtype L1CaloGfex_ECR_CTRL_CLEAR_subtype is std_logic;
+subtype L1CaloGfex_ECR_CTRL_UPDATE_subtype is std_logic;
 subtype L1CaloGfex_DATE_TIME_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_GIT_HASH_subtype is std_logic_vector(31 downto 0);
 subtype L1CaloGfex_FW_VER_CODE_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_TX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_TX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_TX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_TX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_TX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_TX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_RX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_RX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_RX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_TX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_TX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_RX_CTRL_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_TX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_TX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_TX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_RX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_AIPB_RX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_RX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_BIPB_RX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_RX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_CIPB_RX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_TX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_RX_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_ZIPB_RX_DATA_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_INIT_STAT_subtype is std_logic_vector(31 downto 0);
 
 -- status hierarchy data types
     
 type L1CaloGfex_N_BCRD_CTRL_status_record_type is record
-    TWR_LNKS : L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_array_type;
     GLBL_LNKS : L1CaloGfex_N_BCRD_CTRL_GLBL_LNKS_subtype;
     JET_LNKS : L1CaloGfex_N_BCRD_CTRL_JET_LNKS_subtype;
-    test : L1CaloGfex_N_BCRD_CTRL_test_subtype;
+    TWR_LNKS : L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_subtype;
 end record L1CaloGfex_N_BCRD_CTRL_status_record_type;
     
-type L1CaloGfex_GIT_INFO_status_record_type is record
-    GIT_HASH : L1CaloGfex_GIT_INFO_GIT_HASH_subtype;
-end record L1CaloGfex_GIT_INFO_status_record_type;
-type L1CaloGfex_GIT_INFO_status_record_array_type is array (9 downto 0) of L1CaloGfex_GIT_INFO_status_record_type;
+type L1CaloGfex_GBT_CTRL_status_record_type is record
+    SYNC : L1CaloGfex_GBT_CTRL_SYNC_subtype;
+    RST : L1CaloGfex_GBT_CTRL_RST_subtype;
+end record L1CaloGfex_GBT_CTRL_status_record_type;
+    
+type L1CaloGfex_ECR_CTRL_status_record_type is record
+    VALUE : L1CaloGfex_ECR_CTRL_VALUE_subtype;
+    CLEAR : L1CaloGfex_ECR_CTRL_CLEAR_subtype;
+    UPDATE : L1CaloGfex_ECR_CTRL_UPDATE_subtype;
+end record L1CaloGfex_ECR_CTRL_status_record_type;
     
 type L1CaloGfex_status_record_type is record
     CTEST_REG : L1CaloGfex_CTEST_REG_subtype;
     N_BCRD_CTRL : L1CaloGfex_N_BCRD_CTRL_record_type;
-    GIT_INFO : L1CaloGfex_GIT_INFO_record_array_type;
+    GBT_CTRL : L1CaloGfex_GBT_CTRL_record_type;
+    ECR_CTRL : L1CaloGfex_ECR_CTRL_record_type;
     DATE_TIME : L1CaloGfex_DATE_TIME_subtype;
+    GIT_HASH : L1CaloGfex_GIT_HASH_subtype;
     FW_VER_CODE : L1CaloGfex_FW_VER_CODE_subtype;
+    AIPB_TX_CTRL : L1CaloGfex_AIPB_TX_CTRL_subtype;
+    AIPB_TX_DATA : L1CaloGfex_AIPB_TX_DATA_subtype;
+    BIPB_TX_CTRL : L1CaloGfex_BIPB_TX_CTRL_subtype;
+    BIPB_TX_DATA : L1CaloGfex_BIPB_TX_DATA_subtype;
+    CIPB_TX_CTRL : L1CaloGfex_CIPB_TX_CTRL_subtype;
+    CIPB_TX_DATA : L1CaloGfex_CIPB_TX_DATA_subtype;
+    AIPB_RX_CTRL : L1CaloGfex_AIPB_RX_CTRL_subtype;
+    BIPB_RX_CTRL : L1CaloGfex_BIPB_RX_CTRL_subtype;
+    CIPB_RX_CTRL : L1CaloGfex_CIPB_RX_CTRL_subtype;
+    ZIPB_TX_CTRL : L1CaloGfex_ZIPB_TX_CTRL_subtype;
+    ZIPB_TX_DATA : L1CaloGfex_ZIPB_TX_DATA_subtype;
+    ZIPB_RX_CTRL : L1CaloGfex_ZIPB_RX_CTRL_subtype;
+    AIPB_TX_STAT : L1CaloGfex_AIPB_TX_STAT_subtype;
+    BIPB_TX_STAT : L1CaloGfex_BIPB_TX_STAT_subtype;
+    CIPB_TX_STAT : L1CaloGfex_CIPB_TX_STAT_subtype;
+    AIPB_RX_STAT : L1CaloGfex_AIPB_RX_STAT_subtype;
+    AIPB_RX_DATA : L1CaloGfex_AIPB_RX_DATA_subtype;
+    BIPB_RX_STAT : L1CaloGfex_BIPB_RX_STAT_subtype;
+    BIPB_RX_DATA : L1CaloGfex_BIPB_RX_DATA_subtype;
+    CIPB_RX_STAT : L1CaloGfex_CIPB_RX_STAT_subtype;
+    CIPB_RX_DATA : L1CaloGfex_CIPB_RX_DATA_subtype;
+    ZIPB_TX_STAT : L1CaloGfex_ZIPB_TX_STAT_subtype;
+    ZIPB_RX_STAT : L1CaloGfex_ZIPB_RX_STAT_subtype;
+    ZIPB_RX_DATA : L1CaloGfex_ZIPB_RX_DATA_subtype;
+    INIT_STAT : L1CaloGfex_INIT_STAT_subtype;
 end record L1CaloGfex_status_record_type;
     
 
 -- control hierarchy data types
     
 type L1CaloGfex_N_BCRD_CTRL_control_record_type is record
-    TWR_LNKS : L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_array_type;
     GLBL_LNKS : L1CaloGfex_N_BCRD_CTRL_GLBL_LNKS_subtype;
     JET_LNKS : L1CaloGfex_N_BCRD_CTRL_JET_LNKS_subtype;
+    TWR_LNKS : L1CaloGfex_N_BCRD_CTRL_TWR_LNKS_subtype;
 end record L1CaloGfex_N_BCRD_CTRL_control_record_type;
     
+type L1CaloGfex_GBT_CTRL_control_record_type is record
+    SYNC : L1CaloGfex_GBT_CTRL_SYNC_subtype;
+    RST : L1CaloGfex_GBT_CTRL_RST_subtype;
+end record L1CaloGfex_GBT_CTRL_control_record_type;
+    
+type L1CaloGfex_ECR_CTRL_control_record_type is record
+    VALUE : L1CaloGfex_ECR_CTRL_VALUE_subtype;
+    CLEAR : L1CaloGfex_ECR_CTRL_CLEAR_subtype;
+    UPDATE : L1CaloGfex_ECR_CTRL_UPDATE_subtype;
+end record L1CaloGfex_ECR_CTRL_control_record_type;
     
 type L1CaloGfex_control_record_type is record
     CTEST_REG : L1CaloGfex_CTEST_REG_subtype;
     N_BCRD_CTRL : L1CaloGfex_N_BCRD_CTRL_record_type;
+    GBT_CTRL : L1CaloGfex_GBT_CTRL_record_type;
+    ECR_CTRL : L1CaloGfex_ECR_CTRL_record_type;
+    AIPB_TX_CTRL : L1CaloGfex_AIPB_TX_CTRL_subtype;
+    AIPB_TX_DATA : L1CaloGfex_AIPB_TX_DATA_subtype;
+    BIPB_TX_CTRL : L1CaloGfex_BIPB_TX_CTRL_subtype;
+    BIPB_TX_DATA : L1CaloGfex_BIPB_TX_DATA_subtype;
+    CIPB_TX_CTRL : L1CaloGfex_CIPB_TX_CTRL_subtype;
+    CIPB_TX_DATA : L1CaloGfex_CIPB_TX_DATA_subtype;
+    AIPB_RX_CTRL : L1CaloGfex_AIPB_RX_CTRL_subtype;
+    BIPB_RX_CTRL : L1CaloGfex_BIPB_RX_CTRL_subtype;
+    CIPB_RX_CTRL : L1CaloGfex_CIPB_RX_CTRL_subtype;
+    ZIPB_TX_CTRL : L1CaloGfex_ZIPB_TX_CTRL_subtype;
+    ZIPB_TX_DATA : L1CaloGfex_ZIPB_TX_DATA_subtype;
+    ZIPB_RX_CTRL : L1CaloGfex_ZIPB_RX_CTRL_subtype;
 end record L1CaloGfex_control_record_type;
     
 

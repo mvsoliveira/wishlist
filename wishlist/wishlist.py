@@ -3,7 +3,7 @@ from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_it
 import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
-
+import json
 
 def attr_in_family(node, attr, value):
     for n in (node,) + node.children:
@@ -34,23 +34,23 @@ class wishlist:
         with open(self.wishlist_file, "r") as stream:
             try:
                 self.wishlist_dict = yaml.safe_load(stream)
-                print(self.wishlist_dict)
+                print(json.dumps(self.wishlist_dict, indent=2))
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
 
-    def write_yaml_file(self, string, filename):
+    def write_yaml_file(self, dictionary, filename):
         with open(filename, 'w') as file:
-            documents = yaml.dump(string, file)
+            yaml.dump(dictionary, file)
 
     def create_tree(self):
         self.tree = nested_dict_to_tree(self.wishlist_dict)
         print_tree(self.tree, attr_list=['width', 'length', 'permission'])
 
     def register_nodes_iter(self):
-        return preorder_iter(self.tree, filter_condition=lambda node: node.children == ())
+        return preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf)
 
     def hierarchical_nodes_iter(self):
-        return postorder_iter(self.tree, filter_condition=lambda node: node.children != ())
+        return postorder_iter(self.tree, filter_condition=lambda node: not node.is_leaf)
 
     def generate_vhdl_package_file(self):
         environment = Environment(loader=FileSystemLoader("../templates/"))
@@ -69,4 +69,4 @@ class wishlist:
 
 
 if __name__ == '__main__':
-    obj = wishlist('../examples/wishlist.yaml')
+    obj = wishlist('../examples/L1CaloGfex.yaml')
