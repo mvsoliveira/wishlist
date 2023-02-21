@@ -21,8 +21,7 @@ xml_dict = xmltodict.parse(open(xml_filename, 'rb'))
 xml_str = json.dumps(xml_dict)
 
 # manipulating dict string
-replacements = {'"node"': '"children"',
-                '"@id"': '"name"',
+replacements = {
                 '"@address"': '"address"',
                 '"@permission"': '"permission"',
                 '"@description"': '"description"',
@@ -33,8 +32,8 @@ for old,new in replacements.items():
     xml_str = xml_str.replace(old, new)
 
 # generating tree from xml
-xml_tree = json.loads(xml_str)['children']
-tree = nested_dict_to_tree(xml_tree)
+xml_tree = json.loads(xml_str)['node']
+tree = nested_dict_to_tree(xml_tree, name_key='@id', child_key='node')
 
 # copying permission parameter from parents to only tree leaves and assigning default value for leaves without
 str2int = lambda v : int(v,16) if v.startswith('0x') else int(v,10)
@@ -86,4 +85,5 @@ print_tree(tree, attr_list=['width', 'length', 'permission', 'mask', 'address'])
 tree_dict = tree_to_nested_dict(tree, all_attrs=True)
 with open(xml_filename.replace('xml','yaml'), 'w') as file:
     yaml.dump(tree_dict, file, sort_keys=False)
-
+if not_supported_nodes:
+    print(f'Warning: Please be aware that the following nodes were removed because ipbus2whislist does not support modules yet {not_supported_nodes}')
