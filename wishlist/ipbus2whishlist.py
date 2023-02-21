@@ -1,18 +1,18 @@
-import xmltodict
-from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
 import json
+import xmltodict
 import yaml
+from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
 
 default_permission = 'rw'
 default_width = 32
 maximum_width = 32
 
 default_root_attrs = {
-'address_width': 32,
-'address_increment': 4,
-'address_size': 2**16,
-'software_path': '../examples',
-'firmware_path': '../examples',
+    'address_width': 32,
+    'address_increment': 4,
+    'address_size': 2 ** 16,
+    'software_path': '../examples',
+    'firmware_path': '../examples',
 }
 
 # reading xml to dict string
@@ -22,13 +22,13 @@ xml_str = json.dumps(xml_dict)
 
 # manipulating dict string
 replacements = {
-                '"@address"': '"address"',
-                '"@permission"': '"permission"',
-                '"@description"': '"description"',
-                '"@mask"': '"mask"',
-                '"@module"': '"module"',
-                }
-for old,new in replacements.items():
+    '"@address"': '"address"',
+    '"@permission"': '"permission"',
+    '"@description"': '"description"',
+    '"@mask"': '"mask"',
+    '"@module"': '"module"',
+}
+for old, new in replacements.items():
     xml_str = xml_str.replace(old, new)
 
 # generating tree from xml
@@ -36,7 +36,7 @@ xml_tree = json.loads(xml_str)['node']
 tree = nested_dict_to_tree(xml_tree, name_key='@id', child_key='node')
 
 # copying permission parameter from parents to only tree leaves and assigning default value for leaves without
-str2int = lambda v : int(v,16) if v.startswith('0x') else int(v,10)
+str2int = lambda v: int(v, 16) if v.startswith('0x') else int(v, 10)
 not_supported_nodes = []
 # Iterating though leaves
 for leaf in preorder_iter(tree, filter_condition=lambda node: node.is_leaf):
@@ -60,14 +60,14 @@ for leaf in preorder_iter(tree, filter_condition=lambda node: node.is_leaf):
     if hasattr(leaf, 'module'): not_supported_nodes.append(leaf.path_name)
 
 # removing non-supported nodes
-shift_nodes(tree,not_supported_nodes, [None]*len(not_supported_nodes))
+shift_nodes(tree, not_supported_nodes, [None] * len(not_supported_nodes))
 
-min_address = 2**maximum_width-1
+min_address = 2 ** maximum_width - 1
 # iterating though all nodes
 for node in preorder_iter(tree):
-    if hasattr(node,'address'):
+    if hasattr(node, 'address'):
         # finding minimum address to be associated to the root node
-        min_address = min(min_address,str2int(node.address))
+        min_address = min(min_address, str2int(node.address))
         # removing address when defined, whishlist does not support explicit address yet
         delattr(node, 'address')
     # deleting permission from branches
@@ -78,12 +78,13 @@ for node in preorder_iter(tree):
 tree.address = min_address
 # Setting default values for
 for key, value in default_root_attrs.items():
-    setattr(tree,key,value)
+    setattr(tree, key, value)
 print_tree(tree, attr_list=['width', 'length', 'permission', 'mask', 'address'])
 
 # Dumping tree to yaml file
 tree_dict = tree_to_nested_dict(tree, all_attrs=True)
-with open(xml_filename.replace('xml','yaml'), 'w') as file:
+with open(xml_filename.replace('xml', 'yaml'), 'w') as file:
     yaml.dump(tree_dict, file, sort_keys=False)
 if not_supported_nodes:
-    print(f'Warning: Please be aware that the following nodes were removed because ipbus2whislist does not support modules yet {not_supported_nodes}')
+    print(
+        f"Warning: Please be aware that the nodes {', '.join(not_supported_nodes)} were removed because ipbus2whislist does not support modules yet.")
