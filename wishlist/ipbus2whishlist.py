@@ -2,6 +2,7 @@ import json
 import xmltodict
 import yaml
 from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
+from memory import str2int
 
 default_permission = 'rw'
 default_width = 32
@@ -36,7 +37,7 @@ xml_tree = json.loads(xml_str)['node']
 tree = nested_dict_to_tree(xml_tree, name_key='@id', child_key='node')
 
 # copying permission parameter from parents to only tree leaves and assigning default value for leaves without
-str2int = lambda v: int(v, 16) if v.startswith('0x') else int(v, 10)
+
 not_supported_nodes = []
 # Iterating though leaves
 for leaf in preorder_iter(tree, filter_condition=lambda node: node.is_leaf):
