@@ -105,7 +105,7 @@ class memory:
             self.set_bit_cursor(self.width-1)
             remainder = width % self.width
             bits_lists = [list(inclusive_range(self.width - 1, 0, -1))] * (width // self.width) + \
-                         [list(range(self.width - 1, self.width - remainder - 1, -1))]
+                         ([list(range(self.width - 1, self.width - remainder - 1, -1))],[])[remainder==0]
         else:
             raise Exception(
                 f'Allocation is unable to find the requested memory space ({width} bits)  in the current address offset. It wont keep trying because smart mode is off.')
@@ -113,7 +113,7 @@ class memory:
        # Computing bits lists required starting from the MSB
         while True:
             # list of address offsets to be requested
-            address_list = list(range(self.address, np.ceil(width/self.width).astype(int)*self.increment, self.increment))
+            address_list = list(range(self.address, self.address + np.ceil(width/self.width).astype(int)*self.increment, self.increment))
             # Checking if the requested addresses and bits lists are available
             if self.is_available(address_list, bits_lists):
                 return address_list, bits_lists
@@ -138,7 +138,6 @@ class memory:
 if __name__ == '__main__':
     obj = memory(start=0, end=2 ** 5 - 1, width=16, increment=4)
     obj.space.loc[8,6] = 'hi'
-    obj.is_available([4,8],[[3,2,1,0],[7,6,5]])
-    print(obj.allocate_from_width(33))
+    print(obj.allocate_from_width(32))
 
     print()
