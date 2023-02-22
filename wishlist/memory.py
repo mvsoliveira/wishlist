@@ -55,8 +55,8 @@ class memory:
         self.address = self.start
         self.set_address_cursor(self.start)
         self.bit = self.width-1
-        self.space = pd.DataFrame(None, index=range(self.start, self.end + 1, self.increment),
-                                  columns=range(self.width))
+        self.space = pd.DataFrame(None, index=inclusive_range(self.start, self.end, self.increment),
+                                  columns=inclusive_range(self.width - 1, 0, -1))
 
     def set_address_cursor(self, address):
         if self.start <= address <= self.end:
