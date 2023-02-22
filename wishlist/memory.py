@@ -57,6 +57,37 @@ class memory:
         self.bit = self.width-1
         self.space = pd.DataFrame(None, index=inclusive_range(self.start, self.end, self.increment),
                                   columns=inclusive_range(self.width - 1, 0, -1))
+        self.color = {
+            'unallocated' : 'Gainsboro',
+            'smart_allocated_rw' : 'LightCoral',
+            'hard_allocated_rw' : 'IndianRed',
+            'smart_allocated_r': 'DeepSkyBlue',
+            'hard_allocated_r': 'DodgerBlue',
+        }
+
+        self.space_style = pd.DataFrame(self.get_css_style(allocated=False), index=self.space.index, columns=self.space.columns)
+        self.space_styled = pd.DataFrame(None, index=inclusive_range(self.start, self.end, self.increment),
+                                  columns=inclusive_range(self.width - 1, 0, -1))
+
+    def get_css_style(self, allocated=True, **kwargs):
+        if allocated:
+            smart_string = ('hard','smart')[kwargs['smart']]
+            color_name = f'{smart_string}_allocated_{kwargs["permission"]}'
+        else:
+            color_name = 'unallocated'
+        return 'border: 1px solid black; background-color: {c:s}'.format(c=self.color[color_name])
+
+    def update_style(self):
+        get_space_style = lambda df : self.space_style
+        self.space_styled = self.space.style.apply(get_space_style, axis=None)
+
+    def save_space_styled(self):
+        self.space_styled.to_html('test.htm')
+
+
+
+
+
 
     def set_address_cursor(self, address):
         if self.start <= address <= self.end:
@@ -95,7 +126,7 @@ class memory:
             raise Exception(
                 'All elements of the address list should be integer and in the range within the start and end values')
 
-    def allocate_from_width(self, width, smart=True):
+    def allocate_from_width(self, width, name=None, permission=None, smart=True):
         # checking if requested width fits in current address offset
         if self.bit >= width - 1:
             bits_lists = [list(range(self.bit, self.bit - width, -1))]
@@ -116,6 +147,18 @@ class memory:
             address_list = list(range(self.address, self.address + np.ceil(width/self.width).astype(int)*self.increment, self.increment))
             # Checking if the requested addresses and bits lists are available
             if self.is_available(address_list, bits_lists):
+                # Filling the memory space with the owner of each memory space bit
+                if name is None: name = '__allocated_without_name__'
+                if permission is None: permission = '__allocated_without_permission__'
+                current_bit = width-1
+                for address, bits in zip(address_list, bits_lists):
+                    for bit in bits:
+                        if width > 1:
+                            self.space.loc[address,bit] = f'{name}[{current_bit}]'
+                        else:
+                            self.space.loc[address, bit] = f'{name}'
+                        self.space_style.loc[address, bit] = self.get_css_style(permission=permission, smart=smart)
+                        current_bit -= 1
                 return address_list, bits_lists
             elif smart:
                 # If smart mode is on, keep trying to allocate until the end address is reached
@@ -137,7 +180,11 @@ class memory:
 
 if __name__ == '__main__':
     obj = memory(start=0, end=2 ** 5 - 1, width=16, increment=4)
-    obj.space.loc[8,6] = 'hi'
-    print(obj.allocate_from_width(32))
+    obj.space.loc[4,6] = 'hi'
+    print(obj.allocate_from_width(32, name='hi', permission='rw'))
+    print(obj.allocate_from_width(5, name='hi2', permission='r'))
+    obj.update_style()
+    obj.save_space_styled()
+
 
     print()
