@@ -45,8 +45,25 @@ def check_list_of_list(list_of_lists, type):
     return all(check_list(elem, type) for elem in list_of_lists)
 
 
+def get_register_bits_lists(address_list, address_bits_lists, width):
+    register_current_bit = width - 1
+    register_bits_lists = []
+    # Iterating through the list of addresses and list of list of address_bits
+    for address, address_bits in zip(address_list, address_bits_lists):
+        register_bits = []
+        # assigning name of the owner for each bit
+        for bit in address_bits:
+            # keep tracking of the register bit
+            register_bits.append(register_current_bit)
+            # decrementing current bit
+            register_current_bit -= 1
+        # keep track of the list of register_bits
+        register_bits_lists.append(register_bits)
+    return register_bits_lists
 
-class memory:
+
+
+class Memory:
     def __init__(self, start=0, end=2 ** 32 - 1, width=32, increment=1):
         self.start = start
         self.end = end
@@ -86,11 +103,6 @@ class memory:
 
     def save_space_styled(self):
         self.space_styled.to_html('test.htm', notebook=True)
-
-
-
-
-
 
     def set_address_cursor(self, address):
         if self.start <= address <= self.end:
@@ -134,15 +146,17 @@ class memory:
                 'All elements of the address list should be integer and in the range within the start and end values. Check if the requested width is too large.')
 
     def allocate_from_width(self, width, name=None, permission=None, smart=True):
+        if name is None: name = '__allocated_without_name__'
+        if permission is None: permission = '__allocated_without_permission__'
         # checking if requested width fits in current address offset
         if self.bit >= width - 1:
-            bits_lists = [list(range(self.bit, self.bit - width, -1))]
+            address_bits_lists = [list(range(self.bit, self.bit - width, -1))]
         elif smart:
             # By convention, if a node cant be fully allocated in the current address, it attempts to allocate it on
             # the next address offset always starting from the MSB. But the address offset is only set in the while loop
             self.set_bit_cursor(self.width-1)
             remainder = width % self.width
-            bits_lists = [list(inclusive_range(self.width - 1, 0, -1))] * (width // self.width) + \
+            address_bits_lists = [list(inclusive_range(self.width - 1, 0, -1))] * (width // self.width) + \
                          ([list(range(self.width - 1, self.width - remainder - 1, -1))],[])[remainder==0]
         else:
             raise Exception(f'Allocation will not check if the required {width} bits are already in use in the memory-mapped space because the smart mode is off and there are not enough bits for any address offset using address width={self.width} and bit cursor={self.bit} to accomodate the required memory space.')
@@ -152,24 +166,14 @@ class memory:
             # list of address offsets to be requested
             address_list = list(range(self.address, self.address + np.ceil(width/self.width).astype(int)*self.increment, self.increment))
             # Checking if the requested addresses and bits lists are available
-            if self.is_available(address_list, bits_lists):
+            if self.is_available(address_list, address_bits_lists):
                 # Filling the memory space with the owner of each memory space bit
-                if name is None: name = '__allocated_without_name__'
-                if permission is None: permission = '__allocated_without_permission__'
-                current_bit = width-1
-                for address, bits in zip(address_list, bits_lists):
-                    for bit in bits:
-                        if width > 1:
-                            self.space.loc[address,bit] = f'{name}[{current_bit}]'
-                        else:
-                            self.space.loc[address, bit] = f'{name}'
-                        self.space_style.loc[address, bit] = self.get_css_style(permission=permission, smart=smart)
-                        current_bit -= 1
+                final_address, final_address_bit = self._assign_owner(address_list, address_bits_lists, name, width, permission, smart)
                 # moving the cursor to the end of the allocated space and incrementing one bit
-                self.set_address_cursor(address)
-                self.set_bit_cursor(bit)
+                self.set_address_cursor(final_address)
+                self.set_bit_cursor(final_address_bit)
                 self.bit_increment()
-                return address_list, bits_lists
+                return address_list, address_bits_lists
             elif smart:
                 # If smart mode is on, keep trying to allocate until the end address is reached
                 if self.address <= self.end:
@@ -180,7 +184,23 @@ class memory:
                 self.print_debug_space()
                 raise Exception(f'Allocation is unable to find the requested memory space for {name} with ({width} bits) with address={self.address} and bit={self.bit} cursors with smart mode off. The entire or a subset of the requested memory space is already in use. It wont keep trying because smart mode is off.')
 
-
+    def _assign_owner(self, address_list, address_bits_lists, name, width, permission, smart):
+        # Iterating through the list of addresses and list of list of address_bits
+        # address_bits represent the bits in the AXI address signal, i.e. right side of the address decoder assignment for write transactions
+        # register_bits represent the bits in the register signal, i.e. left side of the address decoder assignment for write transactions
+        register_bits_lists = get_register_bits_lists(address_list, address_bits_lists, width)
+        for address, address_bits, register_bits in zip(address_list, address_bits_lists, register_bits_lists):
+            # assigning name of the owner for each bit
+            for address_bit, register_bit in zip(address_bits, register_bits):
+                # If width > 1, add bit index between brackets
+                if width > 1:
+                    self.space.loc[address, address_bit] = f'{name}[{register_bit}]'
+                # otherwise, just the name
+                else:
+                    self.space.loc[address, address_bit] = f'{name}'
+                # adding a CSS string to each cell
+                self.space_style.loc[address, address_bit] = self.get_css_style(permission=permission, smart=smart)
+        return address, address_bit
 
 
     def address_increment(self):
@@ -199,7 +219,7 @@ class memory:
 
 
 if __name__ == '__main__':
-    obj = memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
+    obj = Memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
     obj.space.loc[4,6] = 'hi'
 
     print(obj.allocate_from_width(15, name='hi', permission='rw', smart=False))
