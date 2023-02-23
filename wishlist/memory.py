@@ -59,9 +59,9 @@ class memory:
                                   columns=inclusive_range(self.width - 1, 0, -1))
         self.color = {
             'unallocated' : 'Gainsboro',
-            'smart_allocated_rw' : 'DodgerBlue',
+            'smart_allocated_rw' : 'Plum',
             'hard_allocated_rw' : 'DeepSkyBlue',
-            'smart_allocated_r': 'LawnGreen',
+            'smart_allocated_r': 'Gold',
             'hard_allocated_r': 'LightGreen',
         }
 
@@ -131,7 +131,7 @@ class memory:
                     'All elements of the bits list should be integer and in the range 0 <= bit <= width-1')
         else:
             raise Exception(
-                'All elements of the address list should be integer and in the range within the start and end values')
+                'All elements of the address list should be integer and in the range within the start and end values. Check if the requested width is too large.')
 
     def allocate_from_width(self, width, name=None, permission=None, smart=True):
         # checking if requested width fits in current address offset
@@ -139,13 +139,13 @@ class memory:
             bits_lists = [list(range(self.bit, self.bit - width, -1))]
         elif smart:
             # By convention, if a node cant be fully allocated in the current address, it attempts to allocate it on
-            # the next address offset always starting from the MSB.
+            # the next address offset always starting from the MSB. But the address offset is only set in the while loop
             self.set_bit_cursor(self.width-1)
             remainder = width % self.width
             bits_lists = [list(inclusive_range(self.width - 1, 0, -1))] * (width // self.width) + \
                          ([list(range(self.width - 1, self.width - remainder - 1, -1))],[])[remainder==0]
         else:
-            raise Exception(f'Allocation will not check if the required {width} bits are already in use because there are not enough bits for any address offset using address width={self.width} and bit cursor={self.bit} to accomodate the required memory space.')
+            raise Exception(f'Allocation will not check if the required {width} bits are already in use in the memory-mapped space because the smart mode is off and there are not enough bits for any address offset using address width={self.width} and bit cursor={self.bit} to accomodate the required memory space.')
 
        # Computing bits lists required starting from the MSB
         while True:
@@ -165,16 +165,20 @@ class memory:
                             self.space.loc[address, bit] = f'{name}'
                         self.space_style.loc[address, bit] = self.get_css_style(permission=permission, smart=smart)
                         current_bit -= 1
+                # moving the cursor to the end of the allocated space and incrementing one bit
+                self.set_address_cursor(address)
+                self.set_bit_cursor(bit)
+                self.bit_increment()
                 return address_list, bits_lists
             elif smart:
                 # If smart mode is on, keep trying to allocate until the end address is reached
                 if self.address <= self.end:
                     self.address_increment()
                 else:
-                    raise Exception('Smart allocation is unable to find the requested memory space')
+                    raise Exception('Smart allocation is unable to find the requested memory space and reached the maximum address value')
             else:
                 self.print_debug_space()
-                raise Exception(f'Allocation is unable to find the requested memory space ({width} bits) with address={self.address} and bit={self.bit} cursors with smart mode off. Maybe a requested address offset is already in use.')
+                raise Exception(f'Allocation is unable to find the requested memory space for {name} with ({width} bits) with address={self.address} and bit={self.bit} cursors with smart mode off. The entire or a subset of the requested memory space is already in use. It wont keep trying because smart mode is off.')
 
 
 
@@ -182,18 +186,27 @@ class memory:
     def address_increment(self):
         self.set_address_cursor(self.address + self.increment)
 
+    def bit_increment(self):
+        # If current bit cursor is greater than 0, just decrement the bit cursor
+        if self.bit > 0:
+            self.set_bit_cursor(self.bit-1)
+        # Otherwise, increment the address offset and move the bit cursor to the MSB
+        else:
+            self.address_increment()
+            self.set_bit_cursor(self.width - 1)
+
 
 
 
 if __name__ == '__main__':
-    obj = memory(start=0, end=2 ** 5 - 1, width=32, increment=4)
+    obj = memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
     obj.space.loc[4,6] = 'hi'
 
-    print(obj.allocate_from_width(32, name='hi', permission='rw', smart=False))
+    print(obj.allocate_from_width(15, name='hi', permission='rw', smart=False))
     obj.address_increment()
     print(obj.allocate_from_width(5, name='hi2', permission='r', smart=False))
-    print(obj.allocate_from_width(3, name='hi3', permission='r' ))
-    print(obj.allocate_from_width(33, name='hi3', permission='rw', smart=False))
+    print(obj.allocate_from_width(200, name='hi3', permission='r' ))
+    print(obj.allocate_from_width(5, name='hi4', permission='rw', smart=True))
     obj.update_style()
     obj.save_space_styled()
 
