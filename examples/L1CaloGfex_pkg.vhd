@@ -43,6 +43,7 @@ subtype L1CaloGfex_ZIPB_TX_STAT_subtype is std_logic_vector(31 downto 0);
 subtype L1CaloGfex_ZIPB_RX_STAT_subtype is std_logic_vector(31 downto 0);
 subtype L1CaloGfex_ZIPB_RX_DATA_subtype is std_logic_vector(31 downto 0);
 subtype L1CaloGfex_INIT_STAT_subtype is std_logic_vector(31 downto 0);
+subtype L1CaloGfex_TEST_subtype is std_logic_vector(199 downto 0);
 
 -- status hierarchy data types
     
@@ -96,6 +97,7 @@ type L1CaloGfex_status_record_type is record
     ZIPB_RX_STAT : L1CaloGfex_ZIPB_RX_STAT_subtype;
     ZIPB_RX_DATA : L1CaloGfex_ZIPB_RX_DATA_subtype;
     INIT_STAT : L1CaloGfex_INIT_STAT_subtype;
+    TEST : L1CaloGfex_TEST_subtype;
 end record L1CaloGfex_status_record_type;
     
 

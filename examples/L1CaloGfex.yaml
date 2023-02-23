@@ -204,3 +204,7 @@ children:
   description: Status of global reset, 0x14 on done
   mask: 0xFFFFFFFF
   permission: r
+- name: TEST
+  description: Teeeest
+  width: 200
+  permission: r

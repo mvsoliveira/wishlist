@@ -63,7 +63,7 @@ def get_register_bits_lists(address_list, address_bits_lists, width):
 
 
 
-class Memory:
+class memory:
     def __init__(self, start=0, end=2 ** 32 - 1, width=32, increment=1):
         self.start = start
         self.end = end
@@ -145,6 +145,7 @@ class Memory:
             raise Exception(
                 'All elements of the address list should be integer and in the range within the start and end values. Check if the requested width is too large.')
 
+
     def allocate_from_width(self, width, name=None, permission=None, smart=True):
         if name is None: name = '__allocated_without_name__'
         if permission is None: permission = '__allocated_without_permission__'
@@ -221,7 +222,7 @@ class Memory:
 
 
 if __name__ == '__main__':
-    obj = Memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
+    obj = memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
     obj.space.loc[4,6] = 'hi'
     print(obj.allocate_from_width(15, name='hi', permission='rw', smart=False))
     obj.address_increment()
