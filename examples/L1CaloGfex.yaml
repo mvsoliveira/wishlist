@@ -1,5 +1,5 @@
 name: L1CaloGfex
-address: 2684420096
+address: 0xA0010000
 address_increment: 4
 address_size: 65536
 address_width: 32
@@ -8,162 +8,199 @@ firmware_path: ../examples
 software_path: ../examples
 children:
 - name: CTEST_REG
+  address: 0xA0010000
   description: A register for testing the AXI interface.
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: N_BCRD_CTRL
   description: Number of BCs read out on specific links, must write before enabling
     data flow.
   children:
   - name: GLBL_LNKS
+    address: 0xA001000C
     description: '[11:0] number of BCs for JET links'
+    mask: 0x0003FE00
     permission: rw
-    width: 9
   - name: JET_LNKS
+    address: 0xA001000C
     description: '[23:12] number of BCs for MET links'
+    mask: 0x000001FF
     permission: rw
-    width: 9
   - name: TWR_LNKS
+    address: 0xA001000C
     description: '[31:23] reserved. number of BCs for input links (not implemented
       in fw)'
+    mask: 0xFFFC0000
     permission: rw
-    width: 14
 - name: GBT_CTRL
   description: GBT control register.
   children:
   - name: SYNC
+    address: 0xA0010010
     description: Synchronization signal. 0=start sync, 1=release sync for data taking.
+    mask: 0x00000002
     permission: rw
-    width: 1
   - name: RST
+    address: 0xA0010010
     description: Software generated system reset bit.
+    mask: 0x00000004
     permission: rw
-    width: 1
 - name: ECR_CTRL
   description: '[29] = ECR counter update, [28] = ECR counter clear, [7:0] = ECR counter
     value'
   children:
   - name: VALUE
+    address: 0xA0010014
     description: ECR counter value
+    mask: 0x000000FF
     permission: rw
-    width: 8
   - name: CLEAR
+    address: 0xA0010014
     description: ECR counter clear.
+    mask: 0x10000000
     permission: rw
-    width: 1
   - name: UPDATE
+    address: 0xA0010014
     description: ECR counter update.
+    mask: 0x20000000
     permission: rw
-    width: 1
 - name: DATE_TIME
+  address: 0xA0010100
   description: Date and Time Register.
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: GIT_HASH
+  address: 0xA0010104
   description: Git hash register.
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: FW_VER_CODE
+  address: 0xA0010108
   description: Firmware version of tagged releases
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: AIPB_TX_CTRL
+  address: 0xA0010020
   description: pFGPA A SCR transmit control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: AIPB_TX_DATA
+  address: 0xA0010024
   description: pFGPA A SCR transmit data register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: BIPB_TX_CTRL
+  address: 0xA0010028
   description: pFGPA B SCR transmit control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: BIPB_TX_DATA
+  address: 0xA001002C
   description: pFGPA B SCR transmit data register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: CIPB_TX_CTRL
+  address: 0xA0010030
   description: pFGPA C SCR transmit control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: CIPB_TX_DATA
+  address: 0xA0010034
   description: pFGPA C SCR transmit data register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: AIPB_RX_CTRL
+  address: 0xA0010038
   description: pFGPA A SCR receive control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: BIPB_RX_CTRL
+  address: 0xA001003C
   description: pFGPA B SCR receive control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: CIPB_RX_CTRL
+  address: 0xA0010040
   description: pFGPA C SCR receive control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: ZIPB_TX_CTRL
+  address: 0xA0010044
   description: Zynq Streaming SCR transmit control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: ZIPB_TX_DATA
+  address: 0xA0010048
   description: Zynq Streaming SCR transmit data register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: ZIPB_RX_CTRL
+  address: 0xA001004C
   description: Zynq Streaming SCR receive control register
+  mask: 0xFFFFFFFF
   permission: rw
-  width: 32
 - name: AIPB_TX_STAT
+  address: 0xA0010110
   description: pFGPA A SCR transmit status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: BIPB_TX_STAT
+  address: 0xA0010114
   description: pFGPA B SCR transmit status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: CIPB_TX_STAT
+  address: 0xA0010118
   description: pFGPA C SCR transmit status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: AIPB_RX_STAT
+  address: 0xA001011C
   description: pFGPA A SCR receive status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: AIPB_RX_DATA
+  address: 0xA0010120
   description: pFGPA A SCR receive data register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: BIPB_RX_STAT
+  address: 0xA0010124
   description: pFGPA B SCR receive status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: BIPB_RX_DATA
+  address: 0xA0010128
   description: pFGPA B SCR receive data register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: CIPB_RX_STAT
+  address: 0xA001012C
   description: pFGPA C SCR receive status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: CIPB_RX_DATA
+  address: 0xA0010130
   description: pFGPA C SCR receive data register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: ZIPB_TX_STAT
+  address: 0xA0010140
   description: Zynq Streaming SCR transmit status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: ZIPB_RX_STAT
+  address: 0xA0010144
   description: Zynq Streaming SCR receive status register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: ZIPB_RX_DATA
+  address: 0xA0010148
   description: Zynq Streaming SCR receive data register
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32
 - name: INIT_STAT
+  address: 0xA001014C
   description: Status of global reset, 0x14 on done
+  mask: 0xFFFFFFFF
   permission: r
-  width: 32

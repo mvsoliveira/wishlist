@@ -6,7 +6,10 @@ from memory import str2int
 
 default_permission = 'rw'
 default_width = 32
+default_mask = 2**32-1
 maximum_width = 32
+propagate_address = True
+propagate_mask = True
 
 default_root_attrs = {
     'address_width': 32,
@@ -16,10 +19,15 @@ default_root_attrs = {
     'firmware_path': '../examples',
 }
 
+class HexInt(int): pass
+def representer(dumper, data):
+    return yaml.ScalarNode('tag:yaml.org,2002:int', f'0x{data:08X}')
+
 # reading xml to dict string
 xml_filename = '../examples/L1CaloGfex.xml'
 xml_dict = xmltodict.parse(open(xml_filename, 'rb'))
 xml_str = json.dumps(xml_dict)
+
 
 # manipulating dict string
 replacements = {
@@ -48,16 +56,31 @@ for leaf in preorder_iter(tree, filter_condition=lambda node: node.is_leaf):
         else:
             # assigning ipbus register permission when parent has no permission defined
             leaf.permission = default_permission
-    # defining width based on mask
+    # copying address parameter from parents when not defined
+    if hasattr(leaf, 'address'):
+        leaf.address = HexInt(str2int(leaf.address))
+    else:
+        if hasattr(leaf.parent, 'address'):
+            leaf.address = HexInt(str2int(leaf.parent.address))
+
+
+    # handling mask and computing width if mask is not propagated
     if hasattr(leaf, 'mask'):
         mask = str2int(leaf.mask)
-        leaf.width = f'{mask:b}'.count('1')
+        if not propagate_mask:
+            # Computing width based on mask value
+            leaf.width = f'{mask:b}'.count('1')
+            # deleting mask attribute when defined
+            delattr(leaf, 'mask')
+        else:
+            leaf.mask = HexInt(mask)
     else:
-        # assigning default width value when mask is not defined
-        leaf.width = default_width
-    # deleting mask attribute when defined
-    if hasattr(leaf, 'mask'): delattr(leaf, 'mask')
-    # writing down non-supported nodes
+        if propagate_mask:
+            leaf.mask = HexInt(default_mask)
+        else:
+            leaf.width = default_width
+
+    # keeping track of non-supported nodes
     if hasattr(leaf, 'module'): not_supported_nodes.append(leaf.path_name)
 
 # removing non-supported nodes
@@ -66,11 +89,17 @@ shift_nodes(tree, not_supported_nodes, [None] * len(not_supported_nodes))
 min_address = 2 ** maximum_width - 1
 # iterating though all nodes
 for node in preorder_iter(tree):
+    if hasattr(node, 'address') and not node.is_leaf:
+        delattr(node, 'address')
     if hasattr(node, 'address'):
         # finding minimum address to be associated to the root node
-        min_address = min(min_address, str2int(node.address))
+        min_address = min(min_address, node.address)
         # removing address when defined, whishlist does not support explicit address yet
-        delattr(node, 'address')
+        if propagate_address:
+            if not node.is_leaf:
+                delattr(node, 'address')
+        else:
+            delattr(node, 'address')
     # deleting permission from branches
     if not node.is_leaf and hasattr(node, 'permission'):
         delattr(node, 'permission')
@@ -85,6 +114,7 @@ print_tree(tree, attr_list=['width', 'length', 'permission', 'mask', 'address'])
 # Dumping tree to yaml file
 tree_dict = tree_to_nested_dict(tree, all_attrs=True)
 with open(xml_filename.replace('xml', 'yaml'), 'w') as file:
+    yaml.add_representer(HexInt, representer)
     yaml.dump(tree_dict, file, sort_keys=False)
 if not_supported_nodes:
     print(

@@ -163,7 +163,9 @@ class Memory:
 
        # Computing bits lists required starting from the MSB
         while True:
-            # list of address offsets to be requested
+            # List of address offsets to be requested
+            # Here, I am just using sequential address values, one day one might evaluate using a different strategy
+            # to minimize address decoder combinational logic
             address_list = list(range(self.address, self.address + np.ceil(width/self.width).astype(int)*self.increment, self.increment))
             # Checking if the requested addresses and bits lists are available
             if self.is_available(address_list, address_bits_lists):
@@ -221,7 +223,6 @@ class Memory:
 if __name__ == '__main__':
     obj = Memory(start=0, end=2 ** 7 - 1, width=32, increment=4)
     obj.space.loc[4,6] = 'hi'
-
     print(obj.allocate_from_width(15, name='hi', permission='rw', smart=False))
     obj.address_increment()
     print(obj.allocate_from_width(5, name='hi2', permission='r', smart=False))
