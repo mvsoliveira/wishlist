@@ -78,11 +78,14 @@ class memory:
         return 'border: 1px solid black; background-color: {c:s}'.format(c=self.color[color_name])
 
     def update_style(self):
-        get_space_style = lambda df : self.space_style
+        # This is a function that returns the dataframe containing the CSS strings.
+        # For some reason it cant be a member of the class otherwise a recursion problem arises
+        # and python reaches the maximum of 1000-depth recursion
+        get_space_style = lambda df: self.space_style
         self.space_styled = self.space.fillna("").style.apply(get_space_style, axis=None)
 
     def save_space_styled(self):
-        self.space_styled.to_html('test.htm')
+        self.space_styled.to_html('test.htm', notebook=True)
 
 
 
@@ -104,6 +107,10 @@ class memory:
             self.bit = bit
         else:
             raise Exception("The bit is not in the range 0 <= bit <= width-1")
+
+    def print_debug_space(self):
+        print('Debugging information: \n',
+              self.space.loc[self.address - 2 * self.increment:self.address + 2 * self.increment, :])
 
     def _is_row_available(self, address, bits):
         return self.space.loc[address, bits].dropna().empty
@@ -138,8 +145,7 @@ class memory:
             bits_lists = [list(inclusive_range(self.width - 1, 0, -1))] * (width // self.width) + \
                          ([list(range(self.width - 1, self.width - remainder - 1, -1))],[])[remainder==0]
         else:
-            raise Exception(
-                f'Allocation is unable to find the requested memory space ({width} bits) with address={self.address} and bit={self.bit} cursors. It wont keep trying because smart mode is off.',self.space.loc[self.address,:])
+            raise Exception(f'Allocation will not check if the required {width} bits are already in use because there are not enough bits for any address offset using address width={self.width} and bit cursor={self.bit} to accomodate the required memory space.')
 
        # Computing bits lists required starting from the MSB
         while True:
@@ -167,7 +173,8 @@ class memory:
                 else:
                     raise Exception('Smart allocation is unable to find the requested memory space')
             else:
-                raise Exception(f'Allocation is unable to find the requested memory space ({width} bits) with smart mode off. Maybe a requested address offset is already in use.')
+                self.print_debug_space()
+                raise Exception(f'Allocation is unable to find the requested memory space ({width} bits) with address={self.address} and bit={self.bit} cursors with smart mode off. Maybe a requested address offset is already in use.')
 
 
 
@@ -182,11 +189,11 @@ if __name__ == '__main__':
     obj = memory(start=0, end=2 ** 5 - 1, width=32, increment=4)
     obj.space.loc[4,6] = 'hi'
 
-    print(obj.allocate_from_width(16, name='hi', permission='rw', smart=False))
+    print(obj.allocate_from_width(32, name='hi', permission='rw', smart=False))
     obj.address_increment()
     print(obj.allocate_from_width(5, name='hi2', permission='r', smart=False))
     print(obj.allocate_from_width(3, name='hi3', permission='r' ))
-    print(obj.allocate_from_width(32, name='hi3', permission='rw'))
+    print(obj.allocate_from_width(33, name='hi3', permission='rw', smart=False))
     obj.update_style()
     obj.save_space_styled()
 
