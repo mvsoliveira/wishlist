@@ -22,9 +22,9 @@ type {{ names['array_name'] }} is {{ names['array'] }};
 {% for permission,direction in (('r','status'),('rw','control')) %}
 -- {{ direction }} hierarchy data types
     {#- Iterating through hierarchies #}
-    {% for hierarchy in hierarchies %}
+    {%- for hierarchy in hierarchies %}
         {#- Checking if there are descendants with the required permission value #}
-        {%- if attr_in_family(hierarchy,'permission',permission) %}
+        {% if attr_in_family(hierarchy,'permission',permission) %}
             {%- set parent_names = get_node_names(hierarchy, direction) %}
 {#- Opening the record declaration #}
 type {{ parent_names['type_name'] }} is record
@@ -34,7 +34,7 @@ type {{ parent_names['type_name'] }} is record
                 {%- if attr_in_family(child,'permission',permission) %}
                     {%- set child_names = get_node_names(child, direction) %}
     {#- Adding member to record with type depending on both children and length attributes of the child #}
-    {{ child.name }} : {{ child_names['member_name'] }};
+    {{ child.name.lower() }} : {{ child_names['member_name'] }};
                 {%- endif %}
             {%- endfor %}
 {#- Closing the record declaration #}
@@ -44,7 +44,7 @@ end record {{ parent_names['type_name'] }};
 type {{ parent_names['array_name'] }} is {{ parent_names['array'] }};
             {%- endif %}
         {%- endif %}
-    {% endfor %}
+    {%- endfor %}
 {% endfor %}
 
 end package {{ name.lower() }}_pkg;

@@ -1,21 +1,23 @@
 import pandas
 import pandas as pd
-from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_iter
+from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
 import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
 import numpy as np
 from memory import memory, get_register_bits_lists
+from copy import deepcopy
+import re
 import json
 
 def attr_in_family(node, attr, value):
-    for n in (node,) + node.children:
+    for n in preorder_iter(node):
         if hasattr(n, attr):
-            if value in getattr(n, attr):
+            if value == getattr(n, attr):
                 return True
     return False
 def attr_in_children(node, attr, value):
-    for n in node.children:
+    for n in preorder_iter(node.children):
         if hasattr(n, attr):
             if value == getattr(n, attr):
                 return True
@@ -47,11 +49,6 @@ def get_node_names(node,direction):
     else:
         names['array'] = ''
         names['member_name'] = names['type_name']
-    print()
-
-
-
-
 
     return names
 
@@ -64,22 +61,23 @@ class wishlist(memory):
         self.write_yaml_file(self.wishlist_dict,'../examples/whishlist_parsed_input.yaml')
         self.create_tree()
         self.computing_width()
-        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission'])
         self.set_jinja_environment()
         self.generate_vhdl_package_file()
         # starting memory object
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
+        self.flattening()
+        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description'])
         # Allocation
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
             self.allocate(node)
         self.address_decoder = pd.concat(self.address_decoder_list)
-        self.address_decoder.to_html('address_decoder.htm')
-        df = self.address_decoder[self.address_decoder.permission == 'rw']
+        self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.htm")
         self.generate_vhdl_address_decoder_file()
         self.update_style()
-        self.save_space_styled()
+        self.space_styled.to_html(
+            f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
 
     def read_input_file(self):
         with open(self.wishlist_file, "r") as stream:
@@ -94,6 +92,36 @@ class wishlist(memory):
 
     def create_tree(self):
         self.tree = nested_dict_to_tree(self.wishlist_dict)
+        for node in preorder_iter(self.tree):
+            if re.match('^(?!.*__)[a-zA-Z][\w]*[^_]$', node.name) is None:
+                raise ValueError(f'Node name {node.name} in {node.path_name} is not a valid VHDL indentifier. Please cheange the name.')
+
+    def flattening(self):
+        # Flattening tree
+        finished = False
+        while not finished:
+            finished = True
+            for node in preorder_iter(self.tree):
+                if hasattr(node,'length'):
+                    for i in range(node.length):
+                        children = deepcopy(node.children)
+                        attributes = {}
+                        if hasattr(node,'description'):
+                            attributes['description'] = f'Instance {i}; {node.description}'
+                        if hasattr(node, 'address'):
+                            if i == 0:
+                                attributes['address'] = node.address
+                        if hasattr(node, 'mask'):
+                            attributes['mask'] = node.mask
+                        if hasattr(node, 'width'):
+                            attributes['width'] = node.width
+                        if hasattr(node, 'permission'):
+                            attributes['permission'] = node.permission
+                        a = Node(f'{node.name}({i})', parent=node.parent, children=list(children), **attributes)
+                    shift_nodes(self.tree, [node.path_name[1:]], [None])
+                    finished = False
+                    break
+                    #print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission'])
 
     def register_nodes_iter(self):
         return preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf)
@@ -157,9 +185,9 @@ class wishlist(memory):
         else:
             return f'({bits[0]} downto {bits[-1]})'
 
-    def get_signal_name(self, name, permission):
-        direction_dict = {'r': 'status_int', 'rw': 'control_int'}
-        return name.replace(f'/{self.tree.name}/', f'{self.tree.name}_{direction_dict[permission]}/').replace('/', '.').lower()
+    # def get_signal_name(self, name, permission):
+    #     direction_dict = {'r': 'status_int', 'rw': 'control_int'}
+    #     return name.replace(f'/{self.tree.name}/', f'{self.tree.name}_{direction_dict[permission]}/').replace('/', '.').lower()
 
 
 
@@ -172,7 +200,7 @@ class wishlist(memory):
 
     def generate_vhdl_package_file(self):
         template = self.environment.get_template("vhdl_package.jinja2")
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name']}_pkg.vhd"
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_pkg.vhd"
         content = template.render(self.wishlist_dict,
                                   registers=list(self.register_nodes_iter()),
                                   hierarchies=list(self.hierarchical_nodes_iter()),
@@ -182,7 +210,7 @@ class wishlist(memory):
 
     def generate_vhdl_address_decoder_file(self):
         template = self.environment.get_template("vhdl_address_decoder.jinja2")
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name']}_address_decoder.vhd"
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.vhd"
         content = template.render(self.wishlist_dict,
                                   registers=list(self.register_nodes_iter()),
                                   hierarchies=list(self.hierarchical_nodes_iter()),
@@ -190,7 +218,7 @@ class wishlist(memory):
                                   np=np,
                                   get_address_string=self.get_address_string,
                                   get_vhdl_bit_string=self.get_vhdl_bit_string,
-                                  get_signal_name = self.get_signal_name,
+                                  # get_signal_name = self.get_signal_name,
 
                                   )
         with open(filename, mode="w") as message:

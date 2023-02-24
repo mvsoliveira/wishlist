@@ -30,14 +30,8 @@ children:
     address: 0xA001000C
     description: '[31:23] reserved. number of BCs for input links (not implemented
       in fw)'
-    mask: 0x1FFC0000
+    mask: 0xFFFC0000
     permission: rw
-  - name: TWR_LNKS_read
-    address: 0xA001000C
-    description: '[31:23] reserved. number of BCs for input links (not implemented
-      in fw)'
-    mask: 0x20000000
-    permission: r
 - name: GBT_CTRL
   description: GBT control register.
   children:
@@ -210,15 +204,3 @@ children:
   description: Status of global reset, 0x14 on done
   mask: 0xFFFFFFFF
   permission: r
-- name: TEST
-  description: Teeeest
-  children:
-    - name: INIT_STAT_r
-      description: Status of global reset, 0x14 on done
-      width: 50
-      permission: r
-    - name: INIT_STAT_rw
-      description: Status of global reset, 0x14 on done
-      width: 40
-      permission: rw
-

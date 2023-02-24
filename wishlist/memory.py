@@ -101,9 +101,6 @@ class memory:
         get_space_style = lambda df: self.space_style
         self.space_styled = self.space.fillna("").style.apply(get_space_style, axis=None)
 
-    def save_space_styled(self):
-        self.space_styled.to_html('test.htm', notebook=True)
-
     def set_address_cursor(self, address):
         if self.start <= address <= self.end:
             if not (address - self.start) % self.increment:
@@ -197,7 +194,7 @@ class memory:
             for address_bit, register_bit in zip(address_bits, register_bits):
                 # If width > 1, add bit index between brackets
                 if width > 1:
-                    self.space.loc[address, address_bit] = f'{name}[{register_bit}]'
+                    self.space.loc[address, address_bit] = f'{name}({register_bit})'
                 # otherwise, just the name
                 else:
                     self.space.loc[address, address_bit] = f'{name}'
@@ -230,7 +227,6 @@ if __name__ == '__main__':
     print(obj.allocate_from_width(200, name='hi3', permission='r' ))
     print(obj.allocate_from_width(5, name='hi4', permission='rw', smart=True))
     obj.update_style()
-    obj.save_space_styled()
 
 
     print()

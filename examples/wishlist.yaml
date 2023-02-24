@@ -1,26 +1,33 @@
 ---
-name: L1CaloGfex
+name: Example
 description: IPbus address table for the L1Calo gFEX zynq FPGA
 address: 0xA0010000
 address_width: 32
 address_increment: 4
-address_size: 2**16
+address_size: 65536
 software_path: ../examples
 firmware_path: ../examples
 children:
-  - {name: CTEST_REG, width: 32, permission: rw, description: A register for testing the AXI interface.}
-  - name: N_BCRD_CTRL
-    description: Number of BCs read out on specific links, must write before enabling data flow.
+  - name: user_code
+    description: user code
     children:
-      - {name: TWR_LNKS, width: 14, permission: rw, length: 5, description: reserved. number of BCs for input links (not implemented in fw)}
-      - {name: GLBL_LNKS, width: 7, permission: rw, description: number of BCs for JET links}
-      - {name: JET_LNKS, width: 9, permission: rw, description: number of BCs for MET links}
-      - {name: test, width: 1, permission: r, description: test}
-  - name: GIT_INFO
-    description: Git information
-    length: 10
-    children:
-      - {name: GIT_HASH, width: 32, permission: r, description: Git hash register}
-  - {name: DATE_TIME, width: 32, permission: r, description: Date and Time Register}
-  - {name: FW_VER_CODE, width: 32, permission: r, description: Firmware version of tagged releases}
+      - name: pu
+        description: user code pu
+        length: 2
+        children:
+          - name: fir
+            description: fir filter
+            children:
+              - name: SC
+                description: SC
+                length: 6
+                children:
+                  - name: tap
+                    description: each of the taps
+                    length: 4
+                    width: 28
+                    permission: rw
+  - name: pll_lock
+    width: 1
+    permission: r
 
