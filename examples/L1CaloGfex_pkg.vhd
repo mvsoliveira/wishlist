@@ -74,7 +74,6 @@ type l1calogfex_status_test_record_type is record
     INIT_STAT_r : l1calogfex_test_init_stat_r_subtype;
     INIT_STAT_rw : l1calogfex_test_init_stat_rw_subtype;
 end record l1calogfex_status_test_record_type;
-type l1calogfex_status_test_array_type is array (9 downto 0) of l1calogfex_status_test_record_type;
     
 type l1calogfex_status_record_type is record
     CTEST_REG : l1calogfex_ctest_reg_subtype;
@@ -109,7 +108,7 @@ type l1calogfex_status_record_type is record
     ZIPB_RX_STAT : l1calogfex_zipb_rx_stat_subtype;
     ZIPB_RX_DATA : l1calogfex_zipb_rx_data_subtype;
     INIT_STAT : l1calogfex_init_stat_subtype;
-    TEST : l1calogfex_status_test_array_type;
+    TEST : l1calogfex_status_test_record_type;
 end record l1calogfex_status_record_type;
     
 
@@ -135,7 +134,6 @@ end record l1calogfex_control_ecr_ctrl_record_type;
 type l1calogfex_control_test_record_type is record
     INIT_STAT_rw : l1calogfex_test_init_stat_rw_subtype;
 end record l1calogfex_control_test_record_type;
-type l1calogfex_control_test_array_type is array (9 downto 0) of l1calogfex_control_test_record_type;
     
 type l1calogfex_control_record_type is record
     CTEST_REG : l1calogfex_ctest_reg_subtype;
@@ -154,7 +152,7 @@ type l1calogfex_control_record_type is record
     ZIPB_TX_CTRL : l1calogfex_zipb_tx_ctrl_subtype;
     ZIPB_TX_DATA : l1calogfex_zipb_tx_data_subtype;
     ZIPB_RX_CTRL : l1calogfex_zipb_rx_ctrl_subtype;
-    TEST : l1calogfex_control_test_array_type;
+    TEST : l1calogfex_control_test_record_type;
 end record l1calogfex_control_record_type;
     
 

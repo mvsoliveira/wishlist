@@ -212,7 +212,6 @@ children:
   permission: r
 - name: TEST
   description: Teeeest
-  length: 10
   children:
     - name: INIT_STAT_r
       description: Status of global reset, 0x14 on done

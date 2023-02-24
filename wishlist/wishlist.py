@@ -33,6 +33,8 @@ def get_node_names(node,direction):
         else:
             names['vector'] = f'std_logic'
         names['type_name'] = f'{name}_subtype'
+        # full name for address decoder only
+        names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
     else:
         name = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '_').lower()
         names['type_name'] = f'{name}_record_type'
@@ -132,18 +134,29 @@ class wishlist(memory):
         # Allocating
         address_list, address_bits_lists = self.allocate_from_width(width=node.width, name=node.path_name, permission=node.permission, smart=smart)
         # creating respective dataframe and appending to the address_decoder_list
+        direction = {
+            'rw': 'control',
+            'r': 'status',
+        }
         self.address_decoder_list.append(pd.DataFrame({
             'name': [node.path_name]*len(address_list),
             'permission': [node.permission]*len(address_list),
             'address': address_list,
             'address_bits_lists': address_bits_lists,
             'register_bits_lists': get_register_bits_lists(address_list, address_bits_lists, node.width),
+            'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list)
         }))
 
     def get_address_string(self, address):
         return f'{{address:0{np.ceil(self.tree.address_width/4).astype(int)}X}}'.format(address=address)
-    def get_vhdl_bit_string(self, bits):
-        return f'{bits[0]} downto {bits[-1]}'
+    def get_vhdl_bit_string(self, bits, side):
+        if len(bits) == 1 and side == 'signal':
+            return ''
+        elif len(bits) == 1 and side == 'address':
+            return f'({bits[0]})'
+        else:
+            return f'({bits[0]} downto {bits[-1]})'
+
     def get_signal_name(self, name, permission):
         direction_dict = {'r': 'status_int', 'rw': 'control_int'}
         return name.replace(f'/{self.tree.name}/', f'{self.tree.name}_{direction_dict[permission]}/').replace('/', '.').lower()

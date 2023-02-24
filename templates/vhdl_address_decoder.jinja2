@@ -12,21 +12,25 @@ port(
     clk_i : in std_logic;
     read_i : in std_logic;
     write_i : in std_logic;
+    address_i : in std_logic_vector({{ address_width-1 }} downto 0);
     data_i : in std_logic_vector({{ address_width-1 }} downto 0);
-    data_o : out std_logic_vector({{ address_width-1 }} downto 0)
+    data_o : out std_logic_vector({{ address_width-1 }} downto 0);
+    {{ name }}_status_i : in {{ name }}_status_record_type;
+    {{ name }}_control_o : out {{ name }}_control_record_type
+
 );
 end entity {{ name }}_address_decoder;
 
 
 architecture rtl of {{ name }}_address_decoder is
 
-signal {{ name }}_control_int : {{ name }}_control_record_type;
-signal {{ name }}_status_int : {{ name }}_status_record_type;
+signal int_{{ name }}_control : {{ name }}_control_record_type;
+signal int_{{ name }}_status : {{ name }}_status_record_type;
 
 begin
 
-{{ name }}_control_int <= {{ name }}_control_int;
-{{ name }}_status <= {{ name }}_status_int;
+{{ name }}_control_o <= int_{{ name }}_control;
+int_{{ name }}_status <= {{ name }}_status_i;
 
 address_decoder_p : process (clk_i) is
 begin
@@ -40,9 +44,9 @@ begin
                 when X"{{ get_address_string(address) }}" =>
         {%- for i, row in df[df.address==address].iterrows() %}
                 {%- if direction == 'control' %}
-                    {{ get_signal_name(row['name'], row['permission']) }}({{ get_vhdl_bit_string(row.register_bits_lists) }}) <= data_i({{ get_vhdl_bit_string(row.address_bits_lists) }});
+                    int_{{ row.vhdl_member_name }}{{ get_vhdl_bit_string(row.register_bits_lists, side='signal') }} <= data_i{{ get_vhdl_bit_string(row.address_bits_lists,side='address') }};
             {%- else %}
-                    data_o({{ get_vhdl_bit_string(row.address_bits_lists) }}) <= {{ get_signal_name(row['name'], row['permission']) }}({{ get_vhdl_bit_string(row.register_bits_lists) }});
+                    data_o{{ get_vhdl_bit_string(row.address_bits_lists,side='address') }} <= int_{{ row.vhdl_member_name }}{{ get_vhdl_bit_string(row.register_bits_lists,side='signal') }};
             {%- endif %}
         {%- endfor %}
     {%- endfor %}
