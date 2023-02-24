@@ -2,21 +2,19 @@
 -- Package name: {{ name }}_pkg
 -- Description : {{ description }}
 
-package {{ name }}_pkg is
+library ieee;
+use ieee.std_logic_1164.all;
+
+package {{ name.lower() }}_pkg is
 
 -- register data types
 {# Iterating through registers #}
 {%- for register in registers %}
-    {#- Checking if it is a std_logic_vector #}
-    {%- if register.width > 1 %}
-subtype {{ get_full_name(register)}}_subtype is std_logic_vector({{ register.width-1 }} downto 0);
-    {#- Checking if it is a std_logic #}
-    {%- elif register.width == 1 %}
-subtype {{ get_full_name(register)}}_subtype is std_logic;
-    {%- endif %}
+    {%- set names = get_node_names(register, direction=None) %}
+subtype {{ names['type_name'] }} is {{ names['vector'] }};
     {#- Checking if there is an array associated to it #}
-    {%- if register.length is defined %}
-type {{ get_full_name(register)}}_array_type is array ({{ register.length-1 }} downto 0) of {{ get_full_name(register)}}_subtype;
+    {%- if names['array'] %}
+type {{ names['array_name'] }} is {{ names['array'] }};
     {%- endif %}
 {%- endfor %}
 
@@ -27,28 +25,27 @@ type {{ get_full_name(register)}}_array_type is array ({{ register.length-1 }} d
     {% for hierarchy in hierarchies %}
         {#- Checking if there are descendants with the required permission value #}
         {%- if attr_in_family(hierarchy,'permission',permission) %}
+            {%- set parent_names = get_node_names(hierarchy, direction) %}
 {#- Opening the record declaration #}
-type {{ get_full_name(hierarchy) }}_{{ direction }}_record_type is record
+type {{ parent_names['type_name'] }} is record
             {#- Iterate thorugh each child of an hierarchical node #}
             {%- for child in hierarchy.children %}
                 {#- Checking if itself or descendants have the required permission value #}
                 {%- if attr_in_family(child,'permission',permission) %}
-                    {%- set record = ('','_record')[child.children != ()] %}
-                    {%- set array = ('','_array')[child.length is defined] %}
-                    {%- set type = ('_subtype','_type')[child.children != () or child.length is defined] %}
+                    {%- set child_names = get_node_names(child, direction) %}
     {#- Adding member to record with type depending on both children and length attributes of the child #}
-    {{ child.name }} : {{get_full_name(child)}}{{ record }}{{ array }}{{ type }};
+    {{ child.name }} : {{ child_names['member_name'] }};
                 {%- endif %}
             {%- endfor %}
 {#- Closing the record declaration #}
-end record {{ get_full_name(hierarchy) }}_{{ direction }}_record_type;
+end record {{ parent_names['type_name'] }};
             {#- Checking if there is an array associated to this record #}
-            {%- if hierarchy.length is defined %}
-type {{ get_full_name(hierarchy) }}_{{ direction }}_record_array_type is array ({{ hierarchy.length-1 }} downto 0) of {{ get_full_name(hierarchy) }}_{{ direction }}_record_type;
+            {%- if parent_names['array'] %}
+type {{ parent_names['array_name'] }} is {{ parent_names['array'] }};
             {%- endif %}
         {%- endif %}
     {% endfor %}
 {% endfor %}
 
-end package {{ name }}_pkg;
+end package {{ name.lower() }}_pkg;
 

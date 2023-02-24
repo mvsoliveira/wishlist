@@ -21,8 +21,38 @@ def attr_in_children(node, attr, value):
                 return True
     return False
 
-def get_full_name(node):
-    return node.path_name[1:].replace('/','_')
+def get_full_name(node,direction):
+    return node.path_name[1:].replace('/',f'{direction}')
+
+def get_node_names(node,direction):
+    names = {}
+    if node.is_leaf:
+        name = node.path_name[1:].replace('/', '_').lower()
+        if node.width > 1:
+            names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
+        else:
+            names['vector'] = f'std_logic'
+        names['type_name'] = f'{name}_subtype'
+    else:
+        name = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '_').lower()
+        names['type_name'] = f'{name}_record_type'
+
+    # defining array and member names
+    names['array_name'] = f'{name}_array_type'
+    if hasattr(node,'length'):
+        names['array'] = f'array ({node.length-1} downto 0) of {names["type_name"]}'
+        names['member_name'] = names['array_name']
+    else:
+        names['array'] = ''
+        names['member_name'] = names['type_name']
+    print()
+
+
+
+
+
+    return names
+
 
 class wishlist(memory):
     def __init__(self, wishlist_file):
@@ -42,7 +72,10 @@ class wishlist(memory):
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
             self.allocate(node)
-        pd.concat(self.address_decoder_list).to_html('address_decoder.htm')
+        self.address_decoder = pd.concat(self.address_decoder_list)
+        self.address_decoder.to_html('address_decoder.htm')
+        df = self.address_decoder[self.address_decoder.permission == 'rw']
+        self.generate_vhdl_address_decoder_file()
         self.update_style()
         self.save_space_styled()
 
@@ -102,10 +135,18 @@ class wishlist(memory):
         self.address_decoder_list.append(pd.DataFrame({
             'name': [node.path_name]*len(address_list),
             'permission': [node.permission]*len(address_list),
-            'address_list': address_list,
+            'address': address_list,
             'address_bits_lists': address_bits_lists,
             'register_bits_lists': get_register_bits_lists(address_list, address_bits_lists, node.width),
         }))
+
+    def get_address_string(self, address):
+        return f'{{address:0{np.ceil(self.tree.address_width/4).astype(int)}X}}'.format(address=address)
+    def get_vhdl_bit_string(self, bits):
+        return f'{bits[0]} downto {bits[-1]}'
+    def get_signal_name(self, name, permission):
+        direction_dict = {'r': 'status_int', 'rw': 'control_int'}
+        return name.replace(f'/{self.tree.name}/', f'{self.tree.name}_{direction_dict[permission]}/').replace('/', '.').lower()
 
 
 
@@ -114,18 +155,33 @@ class wishlist(memory):
         self.environment.globals['attr_in_children'] = attr_in_children
         self.environment.globals['attr_in_family'] = attr_in_family
         self.environment.globals['get_full_name'] = get_full_name
+        self.environment.globals['get_node_names'] = get_node_names
 
     def generate_vhdl_package_file(self):
         template = self.environment.get_template("vhdl_package.jinja2")
         filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name']}_pkg.vhd"
         content = template.render(self.wishlist_dict,
                                   registers=list(self.register_nodes_iter()),
-                                  hierarchies=list(self.hierarchical_nodes_iter())
+                                  hierarchies=list(self.hierarchical_nodes_iter()),
                                   )
         with open(filename, mode="w") as message:
             message.write(content)
 
+    def generate_vhdl_address_decoder_file(self):
+        template = self.environment.get_template("vhdl_address_decoder.jinja2")
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name']}_address_decoder.vhd"
+        content = template.render(self.wishlist_dict,
+                                  registers=list(self.register_nodes_iter()),
+                                  hierarchies=list(self.hierarchical_nodes_iter()),
+                                  address_decoder=self.address_decoder,
+                                  np=np,
+                                  get_address_string=self.get_address_string,
+                                  get_vhdl_bit_string=self.get_vhdl_bit_string,
+                                  get_signal_name = self.get_signal_name,
 
+                                  )
+        with open(filename, mode="w") as message:
+            message.write(content)
 
 if __name__ == '__main__':
     obj = wishlist('../examples/L1CaloGfex.yaml')
