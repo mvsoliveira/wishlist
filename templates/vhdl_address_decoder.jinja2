@@ -36,7 +36,7 @@ address_decoder_p : process (clk_i) is
 begin
     if rising_edge(clk_i) then
 {#- Iterating status and control registers #}
-{%- for permission_regex, direction, strobe in (('^rw?$','status','read'),('^r$','control','write')) %}
+{%- for permission_regex, direction, strobe in (('^rw?$','status','read'),('^rw$','control','write')) %}
         if ({{ strobe }}_i = '1') then
             case address_i is
     {%- set df = address_decoder[address_decoder.permission.str.match(permission_regex)] %}
