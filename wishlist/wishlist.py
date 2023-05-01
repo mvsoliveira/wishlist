@@ -76,12 +76,12 @@ class wishlist(memory):
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.htm")
         self.generate_vhdl_address_decoder_file()
-        # dropping unused address offsets and resetting the space_style
+        # dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
         # formatting space and its style
         self.space, self.space_style = formatting(self.space, self.space_style, self.wishlist_dict)
-        # creating styler object
+        # creating styler object from dataframe with values and dataframe with CSS string
         self.update_style()
         # Rendering styler object
         self.space_styled.hide(axis="index").to_html(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
@@ -239,3 +239,4 @@ class wishlist(memory):
 
 if __name__ == '__main__':
     obj = wishlist('../examples/L1CaloGfex.yaml')
+    obj = wishlist('../examples/wishlist.yaml')
