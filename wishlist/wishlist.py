@@ -9,6 +9,7 @@ from memory import memory, get_register_bits_lists
 from copy import deepcopy
 import re
 import json
+from report import formatting
 
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
@@ -75,9 +76,15 @@ class wishlist(memory):
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.htm")
         self.generate_vhdl_address_decoder_file()
+        # dropping unused address offsets and resetting the space_style
+        self.space = self.space.dropna(how='all')
+        self.space_style = self.space_style.loc[self.space.index,:]
+        # formatting space and its style
+        self.space, self.space_style = formatting(self.space, self.space_style, self.wishlist_dict)
+        # creating styler object
         self.update_style()
-        self.space_styled.to_html(
-            f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
+        # Rendering styler object
+        self.space_styled.hide(axis="index").to_html(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
 
     def read_input_file(self):
         with open(self.wishlist_file, "r") as stream:
