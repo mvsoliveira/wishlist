@@ -135,16 +135,22 @@ class wishlist(memory):
                 mask_str = f'{node.mask:b}'
                 diff = np.diff([int(s) for s in mask_str])
                 if len(diff[diff != 0]) > 1:
-                    raise Exception(f'The specified mask=0b{mask_str} for node {node.path_name} is asserted high in a non-contiguous bit interval. Currently, whishlist does not suport this use case, i.e. all the mask bits asserted high have to be grouped together.')
+                    raise ValueError(
+                        f'The specified mask=0b{mask_str} for node {node.path_name} is asserted high in a non-contiguous bit interval\n.'
+                        f'Currently, whishlist does not suport this use case, i.e. all the mask bits asserted high have to be grouped together.'
+                    )
                 width = int(mask_str.count('1'))
                 if hasattr(node, 'width'):
                     if node.width != width:
-                        raise Exception(f'Both mask and width have been defined for {node.path_name}. However the width computed from the mask={width} is different than the specified width={node.width}.')
+                        raise ValueError(f'Both mask and width have been defined for {node.path_name}. However the width computed from the mask={width} is different than the specified width={node.width}.')
                 else:
                     node.width = width
             elif not hasattr(node, 'width'):
-                raise Exception(
-                    f'Node {node.path_name} has no width or mask specified. One of them is required, and if both are defined, the mask value gets priority over the width as it enforces the bit position in the address offset. Nevertheless, the provided width is still checked against the provided mask for consistency checking.')
+                raise ValueError(
+                    f'Node {node.path_name} has no width or mask specified. One of them is required, and if both are defined,'
+                    f'the mask value gets priority over the width as it enforces the bit position in the address offset.\n'
+                    f'Nevertheless, the provided width is still checked against the provided mask for consistency checking.'
+                )
 
 
     def allocate(self, node):
