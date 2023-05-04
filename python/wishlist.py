@@ -1,4 +1,3 @@
-import pandas
 import pandas as pd
 from bigtree import nested_dict_to_tree, tree_to_nested_dict, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
 import yaml
@@ -266,9 +265,7 @@ class wishlist(memory):
                     f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
         template = self.environment.get_template("xml_uhal.jinja2")
         filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
-        content = template.render(self.wishlist_dict,
-                                  tree=self.tree,
-                                  )
+        content = template.render(tree=self.tree)
         with open(filename, mode="w") as message:
             try:
                 dom = xml_beautify(content)
