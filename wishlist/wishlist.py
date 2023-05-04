@@ -1,6 +1,6 @@
 import pandas
 import pandas as pd
-from bigtree import nested_dict_to_tree, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
+from bigtree import nested_dict_to_tree, tree_to_nested_dict, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
 import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
@@ -59,6 +59,7 @@ class wishlist(memory):
         self.tree = None
         self.wishlist_file = wishlist_file
         self.read_input_file()
+        print(self.wishlist_dict)
         self.write_yaml_file(self.wishlist_dict,'../examples/whishlist_parsed_input.yaml')
         self.create_tree()
         self.computing_width()
@@ -73,18 +74,22 @@ class wishlist(memory):
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
             self.allocate(node)
+        # Writing back-annotated yam file
+        self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
+        # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
-        self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.htm")
+        self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
         self.generate_vhdl_address_decoder_file()
-        # dropping unused address offsets
+        # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
-        # formatting space and its style
+        # Formatting space and its style
         self.space, self.space_style = formatting(self.space, self.space_style, self.wishlist_dict)
-        # creating styler object from dataframe with values and dataframe with CSS string
+        # Creating styler object from dataframe with values and dataframe with CSS string
         self.update_style()
         # Rendering styler object
         self.space_styled.hide(axis="index").to_html(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
+        #self.space.fillna('').to_latex(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.latex",label=self.wishlist_dict['name'].lower(), index=False, longtable=True)
 
     def read_input_file(self):
         with open(self.wishlist_file, "r") as stream:
@@ -95,13 +100,13 @@ class wishlist(memory):
 
     def write_yaml_file(self, dictionary, filename):
         with open(filename, 'w') as file:
-            yaml.dump(dictionary, file)
+            yaml.dump(dictionary, file, sort_keys=False)
 
     def create_tree(self):
         self.tree = nested_dict_to_tree(self.wishlist_dict)
         for node in preorder_iter(self.tree):
             if re.match('^(?!.*__)[a-zA-Z][\w]*[^_]$', node.name) is None:
-                raise ValueError(f'Node name {node.name} in {node.path_name} is not a valid VHDL indentifier. Please cheange the name.')
+                raise ValueError(f'Node name {node.name} in {node.path_name} is not a valid VHDL indentifier. Please change the name.')
 
     def flattening(self):
         # Flattening tree
@@ -187,6 +192,17 @@ class wishlist(memory):
             'register_bits_lists': get_register_bits_lists(address_list, address_bits_lists, node.width),
             'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list)
         }))
+        # Back-annottating address and mask
+        node.address = address_list
+        print([self.bit_list_to_mask(bits_list) for bits_list in address_bits_lists])
+        node.mask = [self.bit_list_to_mask(bits_list) for bits_list in address_bits_lists]
+
+    def bit_list_to_mask(self, bit_list):
+        # it works even for non-contiguous bit lists
+        mask_list = np.zeros(max(bit_list)+1,dtype=int)
+        mask_list[bit_list] = 1
+        mask = sum([x << i for i, x in enumerate(mask_list)])
+        return int(mask)
 
     def get_address_string(self, address):
         return f'{{address:0{np.ceil(self.tree.address_width/4).astype(int)}X}}'.format(address=address)

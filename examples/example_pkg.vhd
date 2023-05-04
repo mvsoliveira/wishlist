@@ -9,7 +9,7 @@ package example_pkg is
 
 -- register data types
 
-subtype example_user_code_pu_fir_sc_tap_subtype is std_logic_vector(27 downto 0);
+subtype example_user_code_pu_fir_sc_tap_subtype is std_logic_vector(33 downto 0);
 type example_user_code_pu_fir_sc_tap_array_type is array (3 downto 0) of example_user_code_pu_fir_sc_tap_subtype;
 subtype example_pll_lock_subtype is std_logic;
 
