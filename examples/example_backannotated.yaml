@@ -1,7 +1,7 @@
 name: Example
-address: 2684420096
+address: 0xA0010000
 address_increment: 4
-address_size: 65536
+address_size: 0x00010000
 address_width: 32
 description: IPbus address table for the L1Calo gFEX zynq FPGA
 firmware_path: ../examples
@@ -21,259 +21,211 @@ children:
         children:
         - name: tap(0)
           address:
-          - 2684420096
-          - 2684420100
+          - 0xA0010000
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420104
-          - 2684420108
+          - 0xA0010004
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420112
-          - 2684420116
+          - 0xA0010008
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420120
-          - 2684420124
+          - 0xA001000C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(1)
         description: Instance 1; SC
         children:
         - name: tap(0)
           address:
-          - 2684420128
-          - 2684420132
+          - 0xA0010010
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420136
-          - 2684420140
+          - 0xA0010014
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420144
-          - 2684420148
+          - 0xA0010018
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420152
-          - 2684420156
+          - 0xA001001C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(2)
         description: Instance 2; SC
         children:
         - name: tap(0)
           address:
-          - 2684420160
-          - 2684420164
+          - 0xA0010020
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420168
-          - 2684420172
+          - 0xA0010024
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420176
-          - 2684420180
+          - 0xA0010028
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420184
-          - 2684420188
+          - 0xA001002C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(3)
         description: Instance 3; SC
         children:
         - name: tap(0)
           address:
-          - 2684420192
-          - 2684420196
+          - 0xA0010030
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420200
-          - 2684420204
+          - 0xA0010034
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420208
-          - 2684420212
+          - 0xA0010038
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420216
-          - 2684420220
+          - 0xA001003C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(4)
         description: Instance 4; SC
         children:
         - name: tap(0)
           address:
-          - 2684420224
-          - 2684420228
+          - 0xA0010040
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420232
-          - 2684420236
+          - 0xA0010044
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420240
-          - 2684420244
+          - 0xA0010048
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420248
-          - 2684420252
+          - 0xA001004C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(5)
         description: Instance 5; SC
         children:
         - name: tap(0)
           address:
-          - 2684420256
-          - 2684420260
+          - 0xA0010050
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420264
-          - 2684420268
+          - 0xA0010054
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420272
-          - 2684420276
+          - 0xA0010058
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420280
-          - 2684420284
+          - 0xA001005C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
   - name: pu(1)
     description: Instance 1; user code pu
     children:
@@ -285,263 +237,215 @@ children:
         children:
         - name: tap(0)
           address:
-          - 2684420288
-          - 2684420292
+          - 0xA0010060
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420296
-          - 2684420300
+          - 0xA0010064
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420304
-          - 2684420308
+          - 0xA0010068
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420312
-          - 2684420316
+          - 0xA001006C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(1)
         description: Instance 1; SC
         children:
         - name: tap(0)
           address:
-          - 2684420320
-          - 2684420324
+          - 0xA0010070
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420328
-          - 2684420332
+          - 0xA0010074
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420336
-          - 2684420340
+          - 0xA0010078
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420344
-          - 2684420348
+          - 0xA001007C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(2)
         description: Instance 2; SC
         children:
         - name: tap(0)
           address:
-          - 2684420352
-          - 2684420356
+          - 0xA0010080
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420360
-          - 2684420364
+          - 0xA0010084
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420368
-          - 2684420372
+          - 0xA0010088
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420376
-          - 2684420380
+          - 0xA001008C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(3)
         description: Instance 3; SC
         children:
         - name: tap(0)
           address:
-          - 2684420384
-          - 2684420388
+          - 0xA0010090
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420392
-          - 2684420396
+          - 0xA0010094
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420400
-          - 2684420404
+          - 0xA0010098
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420408
-          - 2684420412
+          - 0xA001009C
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(4)
         description: Instance 4; SC
         children:
         - name: tap(0)
           address:
-          - 2684420416
-          - 2684420420
+          - 0xA00100A0
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420424
-          - 2684420428
+          - 0xA00100A4
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420432
-          - 2684420436
+          - 0xA00100A8
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420440
-          - 2684420444
+          - 0xA00100AC
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
       - name: SC(5)
         description: Instance 5; SC
         children:
         - name: tap(0)
           address:
-          - 2684420448
-          - 2684420452
+          - 0xA00100B0
           description: Instance 0; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(1)
           address:
-          - 2684420456
-          - 2684420460
+          - 0xA00100B4
           description: Instance 1; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(2)
           address:
-          - 2684420464
-          - 2684420468
+          - 0xA00100B8
           description: Instance 2; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
         - name: tap(3)
           address:
-          - 2684420472
-          - 2684420476
+          - 0xA00100BC
           description: Instance 3; each of the taps
           mask:
-          - 4294967295
-          - 3221225472
+          - 0xFFFFFFF0
           permission: rw
-          width: 34
+          width: 28
 - name: pll_lock
   address:
-  - 2684420476
+  - 0xA00100BC
   mask:
-  - 536870912
+  - 0x00000008
   permission: r
   width: 1

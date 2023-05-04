@@ -8,8 +8,9 @@ import numpy as np
 from memory import memory, get_register_bits_lists
 from copy import deepcopy
 import re
-import json
+import os
 from report import formatting
+import xml.dom.minidom
 
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
@@ -59,7 +60,6 @@ class wishlist(memory):
         self.tree = None
         self.wishlist_file = wishlist_file
         self.read_input_file()
-        print(self.wishlist_dict)
         self.write_yaml_file(self.wishlist_dict,'../examples/whishlist_parsed_input.yaml')
         self.create_tree()
         self.computing_width()
@@ -76,6 +76,8 @@ class wishlist(memory):
             self.allocate(node)
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
+        # Generating software description file
+        self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
@@ -97,9 +99,13 @@ class wishlist(memory):
                 self.wishlist_dict = yaml.safe_load(stream)
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
+            # Making sure address is read as HexInt
+            self.wishlist_dict['address'] = HexInt(self.wishlist_dict['address'])
+            self.wishlist_dict['address_size'] = HexInt(self.wishlist_dict['address_size'])
 
     def write_yaml_file(self, dictionary, filename):
         with open(filename, 'w') as file:
+            yaml.add_representer(HexInt, representer)
             yaml.dump(dictionary, file, sort_keys=False)
 
     def create_tree(self):
@@ -193,9 +199,9 @@ class wishlist(memory):
             'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list)
         }))
         # Back-annottating address and mask
-        node.address = address_list
-        print([self.bit_list_to_mask(bits_list) for bits_list in address_bits_lists])
-        node.mask = [self.bit_list_to_mask(bits_list) for bits_list in address_bits_lists]
+        node.address = [HexInt(addr) for addr in address_list]
+        node.mask = [HexInt(self.bit_list_to_mask(bits_list)) for bits_list in address_bits_lists]
+
 
     def bit_list_to_mask(self, bit_list):
         # it works even for non-contiguous bit lists
@@ -252,6 +258,45 @@ class wishlist(memory):
                                   )
         with open(filename, mode="w") as message:
             message.write(content)
+
+    def generate_uhal_file(self):
+        for node in self.register_nodes_iter():
+            if node.width > 32:
+                raise ValueError(
+                    f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
+        template = self.environment.get_template("xml_uhal.jinja2")
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
+        content = template.render(self.wishlist_dict,
+                                  tree=self.tree,
+                                  )
+        with open(filename, mode="w") as message:
+            try:
+                dom = xml_beautify(content)
+            except:
+                print('XML ERROR, please check output XML')
+                dom = content
+            message.write(dom)
+
+
+
+# HexInt class and respective representer
+class HexInt(int): pass
+
+
+def representer(dumper, data):
+    n_bits = np.ceil(np.log2(data))
+    if n_bits <= 32:
+        n_hex = 8
+    else:
+        n_hex = int(np.ceil(n_bits/4))
+    return yaml.ScalarNode('tag:yaml.org,2002:int', f'0x{{data:0{n_hex:d}X}}'.format(data=data))
+
+
+def xml_beautify(content):
+    dom = xml.dom.minidom.parseString(content)
+    dom_string = dom.toprettyxml()
+    return os.linesep.join([s for s in dom_string.splitlines() if s.strip()])
+
 
 if __name__ == '__main__':
     obj = wishlist('../examples/L1CaloGfex.yaml')

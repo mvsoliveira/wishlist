@@ -1,9 +1,9 @@
 name: Example
 description: IPbus address table for the L1Calo gFEX zynq FPGA
-address: 2684420096
+address: 0xA0010000
 address_width: 32
 address_increment: 4
-address_size: 65536
+address_size: 0x00010000
 software_path: ../examples
 firmware_path: ../examples
 children:
@@ -24,7 +24,7 @@ children:
         - name: tap
           description: each of the taps
           length: 4
-          width: 34
+          width: 28
           permission: rw
 - name: pll_lock
   width: 1

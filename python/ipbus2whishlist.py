@@ -3,6 +3,7 @@ import xmltodict
 import yaml
 from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
 from memory import str2int
+from wishlist import HexInt, representer, xml_beautify
 
 default_permission = 'rw'
 default_width = 32
@@ -18,10 +19,6 @@ default_root_attrs = {
     'software_path': '../examples',
     'firmware_path': '../examples',
 }
-
-class HexInt(int): pass
-def representer(dumper, data):
-    return yaml.ScalarNode('tag:yaml.org,2002:int', f'0x{data:08X}')
 
 # reading xml to dict string
 xml_filename = '../examples/L1CaloGfex.xml'

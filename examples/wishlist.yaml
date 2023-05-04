@@ -25,7 +25,7 @@ children:
                   - name: tap
                     description: each of the taps
                     length: 4
-                    width: 34
+                    width: 28
                     permission: rw
   - name: pll_lock
     width: 1
