@@ -10,11 +10,14 @@ wishlist_venv:
     - pip3.9 install -r requirements.txt
   tags:
     - wishlist
+  artifacts:
+    untracked: true
+    expire_in: 1 days
 
 wishlist_build:
   stage: compilation
   dependencies:
-    - environment
+    - wishlist_venv
   script:
     - echo 'Hello'
   tags:
