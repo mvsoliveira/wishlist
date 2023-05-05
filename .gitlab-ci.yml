@@ -4,7 +4,7 @@ stages:
 wishlist_build:
   stage: compilation
   script:
-    - echo 'Hello'
+    - pwd
     - source /home/latomefw/wishlist/venv/bin/activate
     - python python/wishlist.py
   tags:
