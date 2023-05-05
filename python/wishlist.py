@@ -295,5 +295,5 @@ def xml_beautify(content):
 
 
 if __name__ == '__main__':
-    obj = wishlist('../examples/L1CaloGfex.yaml')
-    obj = wishlist('../examples/example.yaml')
+    obj = wishlist('examples/L1CaloGfex.yaml')
+    obj = wishlist('examples/example.yaml')
