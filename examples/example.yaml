@@ -5,8 +5,8 @@ address: 0xA0010000
 address_width: 32
 address_increment: 4
 address_size: 65536
-software_path: ../software
-firmware_path: ../firmware
+software_path: software
+firmware_path: firmware
 children:
   - name: user_code
     description: user code
