@@ -1,5 +1,12 @@
-wishlist_build:
+wishlist_venv:
+  stage: environment
   script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+
+wishlist_build:
+  stage: build  script:
     - echo 'Hello'
   tags:
     - wishlist
