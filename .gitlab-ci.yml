@@ -1,15 +1,14 @@
 wishlist_venv:
-  stage: .pre
   script:
-    - source /cephfs/setup.sh
-    - python3 -m venv venv
+    - python3.9 -m venv venv
     - source venv/bin/activate
-    - pip3 install -r requirements.txt
+    - pip3.9 install -r requirements.txt
   tags:
     - wishlist
 
 wishlist_build:
-  stage: build
+  needs:
+    - wishlist_venv
   script:
     - echo 'Hello'
   tags:
