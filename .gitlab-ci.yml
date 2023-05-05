@@ -13,7 +13,7 @@ wishlist_venv:
 
 wishlist_build:
   stage: compilation
-  needs: wishlist_venv
+  needs: [wishlist_venv]
   script:
     - echo 'Hello'
   tags:
