@@ -1,10 +1,10 @@
 stages:
   - compilation
+  - validation
 
 wishlist_build:
   stage: compilation
   script:
-    - pwd
     - source /home/latomefw/wishlist/venv/bin/activate
     - python python/wishlist.py
   tags:
@@ -13,3 +13,4 @@ wishlist_build:
     paths:
       - firmware
       - software
+

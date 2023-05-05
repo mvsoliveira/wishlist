@@ -8,7 +8,7 @@
     {%- if node.is_leaf %}
         <node id="{{ node.name }}" address="{{ '0x{0:08X}'.format(node.address[0]) }}" mask="{{ '0x{0:08X}'.format(node.mask[0]) }}" permission="{{ node.permission }}" description="{{ node.description }}"/>
     {%- else %}
-        <node id="{{ node.name }}" description="{{ node.description }}">
+        <node id="{{ node.name }}" address="{{ '0x{0:08X}'.format(node.address[0]) }}" description="{{ node.description }}">
     {%- endif -%}
     {%- set ns.last_n_levels = node.path_name.count('/') -%}
 {%- endfor %}
