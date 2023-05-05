@@ -225,7 +225,7 @@ class wishlist(memory):
 
 
     def set_jinja_environment(self):
-        self.environment = Environment(loader=FileSystemLoader("../templates/"))
+        self.environment = Environment(loader=FileSystemLoader("templates/"))
         self.environment.globals['attr_in_children'] = attr_in_children
         self.environment.globals['attr_in_family'] = attr_in_family
         self.environment.globals['get_full_name'] = get_full_name
