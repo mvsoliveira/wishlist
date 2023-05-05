@@ -1,0 +1,9 @@
+wishlist_build:
+  script:
+    - echo 'Hello'
+  tags:
+    - wishlist
+  artifacts:
+    paths:
+      - firmware
+      - software
