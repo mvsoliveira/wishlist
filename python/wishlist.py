@@ -59,7 +59,7 @@ class wishlist(memory):
     def __init__(self, wishlist_file):
         self.tree = None
         self.wishlist_file = wishlist_file
-        pathlib.Path("fimrware").mkdir(parents=True, exist_ok=True)
+        pathlib.Path("firmware").mkdir(parents=True, exist_ok=True)
         pathlib.Path("software").mkdir(parents=True, exist_ok=True)
         self.read_input_file()
         self.create_tree()
