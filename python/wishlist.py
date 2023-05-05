@@ -10,6 +10,7 @@ import re
 import os
 from report import formatting
 import xml.dom.minidom
+import pathlib
 
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
@@ -58,6 +59,8 @@ class wishlist(memory):
     def __init__(self, wishlist_file):
         self.tree = None
         self.wishlist_file = wishlist_file
+        pathlib.Path("fimrware").mkdir(parents=True, exist_ok=True)
+        pathlib.Path("software").mkdir(parents=True, exist_ok=True)
         self.read_input_file()
         self.create_tree()
         self.computing_width()
