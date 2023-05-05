@@ -1,5 +1,9 @@
+stages:
+  - environment
+  - compilation
+
 wishlist_venv:
-  stage: .pre
+  stage: environment
   script:
     - python3.9 -m venv venv
     - source venv/bin/activate
@@ -8,7 +12,8 @@ wishlist_venv:
     - wishlist
 
 wishlist_build:
-  stage: build
+  stage: compilation
+  needs: wishlist_venv
   script:
     - echo 'Hello'
   tags:
