@@ -261,15 +261,15 @@ class wishlist(memory):
             message.write(content)
 
     def generate_uhal_file(self):
+        # Masking sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
-            # Masking sure there are no words larger than 32 bits
             if node.width > 32:
                 raise ValueError(
                     f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
-            # Adding addr to parent node
-            if not node.parent.is_root:
-                node.parent.address = node.address
-        #print_tree(self.tree, all_attrs=True)
+        # Adding first addr to parent node recursively
+        for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
+            node.parent.address = node.parent.children[0].address
+        print_tree(self.tree, all_attrs=True)
         template = self.environment.get_template("xml_uhal.jinja2")
         filename = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
         content = template.render(tree=self.tree)
@@ -304,4 +304,4 @@ def xml_beautify(content):
 
 if __name__ == '__main__':
     obj = wishlist('examples/L1CaloGfex.yaml')
-    #obj = wishlist('examples/example.yaml')
+    obj = wishlist('examples/example.yaml')
