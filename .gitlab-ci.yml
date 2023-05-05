@@ -1,25 +1,12 @@
 stages:
-  - environment
   - compilation
-
-wishlist_venv:
-  stage: environment
-  script:
-    - python3.9 -m venv venv
-    - source venv/bin/activate
-    - pip3.9 install -r requirements.txt
-  tags:
-    - wishlist
-  artifacts:
-    untracked: true
-    expire_in: 1 days
 
 wishlist_build:
   stage: compilation
-  dependencies:
-    - wishlist_venv
   script:
     - echo 'Hello'
+    - source /home/latomefw/wishlist/venv/bin/activate
+    - python python/wishlist.py
   tags:
     - wishlist
   artifacts:
