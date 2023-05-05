@@ -6,7 +6,8 @@ wishlist_venv:
     - pip install -r requirements.txt
 
 wishlist_build:
-  stage: build  script:
+  stage: build
+  script:
     - echo 'Hello'
   tags:
     - wishlist
