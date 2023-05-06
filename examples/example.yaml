@@ -13,7 +13,7 @@ children:
     children:
       - name: pu
         description: user code pu
-        length: 2
+        length: 62
         children:
           - name: fir
             description: fir filter
