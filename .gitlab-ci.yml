@@ -6,7 +6,8 @@ wishlist_compilation:
   stage: compilation
   script:
     - source /home/latomefw/wishlist/venv/bin/activate
-    - python python/wishlist.py
+    - python python/wishlist.py examples/L1CaloGfex.yaml
+    - python python/wishlist.py examples/example.yaml
   tags:
     - wishlist
   artifacts:

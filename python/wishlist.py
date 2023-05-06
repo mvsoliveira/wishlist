@@ -11,6 +11,7 @@ import os
 from report import formatting
 import xml.dom.minidom
 import pathlib
+import sys
 
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
@@ -306,5 +307,4 @@ def xml_beautify(content):
 
 
 if __name__ == '__main__':
-    obj = wishlist('examples/L1CaloGfex.yaml')
-    obj = wishlist('examples/example.yaml')
+    obj = wishlist(sys.argv[1])
