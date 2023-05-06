@@ -273,10 +273,11 @@ class wishlist(memory):
         # Now converting absolute to relative addresses (requirement from uHAL), making sure top remains with addr 0x0
         for node in postorder_iter(self.tree, filter_condition=lambda node: node.path_name.count('/') > 2):
             node.address = [node.address[0]-node.parent.address[0]]
-        print_tree(self.tree, all_attrs=True)
+        # Rendering XML file
         template = self.environment.get_template("xml_uhal.jinja2")
-        filename = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
         content = template.render(tree=self.tree)
+        filename = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
+        # Trying to beautify, if fails write rendered version
         with open(filename, mode="w") as message:
             try:
                 dom = xml_beautify(content)
