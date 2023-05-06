@@ -269,6 +269,9 @@ class wishlist(memory):
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address
+        # Now converting absolute to relative addresses (requirement from uHAL), making sure top remains with addr 0x0
+        for node in postorder_iter(self.tree, filter_condition=lambda node: node.path_name.count('/') > 2):
+            node.address = [node.address[0]-node.parent.address[0]]
         print_tree(self.tree, all_attrs=True)
         template = self.environment.get_template("xml_uhal.jinja2")
         filename = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"

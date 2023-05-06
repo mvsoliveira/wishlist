@@ -1,8 +1,8 @@
 stages:
   - compilation
-  - validation
+  - simulation
 
-wishlist_build:
+wishlist_compilation:
   stage: compilation
   script:
     - source /home/latomefw/wishlist/venv/bin/activate
@@ -13,4 +13,13 @@ wishlist_build:
     paths:
       - firmware
       - software
+
+uhal_simulation:
+  stage: simulation
+  script:
+    - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
+    - python3 python/uhal_dummy_connection.py software/l1calogfex_uhal.xml
+    - python3 python/uhal_dummy_connection.py software/example_uhal.xml
+  tags:
+    - wishlist
 
