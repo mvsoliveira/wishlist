@@ -13,12 +13,15 @@ import xml.dom.minidom
 import pathlib
 import sys
 
+
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
         if hasattr(n, attr):
             if value == getattr(n, attr):
                 return True
     return False
+
+
 def attr_in_children(node, attr, value):
     for n in preorder_iter(node.children):
         if hasattr(n, attr):
@@ -26,8 +29,10 @@ def attr_in_children(node, attr, value):
                 return True
     return False
 
+
 def get_full_name(node,direction):
     return node.path_name[1:].replace('/',f'{direction}')
+
 
 def get_node_names(node,direction):
     names = {}
