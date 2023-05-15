@@ -1,16 +1,12 @@
 import os
-import random
-import sys
 import yaml
-from bigtree import nested_dict_to_tree, tree_to_nested_dict, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
+from bigtree import nested_dict_to_tree, preorder_iter
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, ReadOnly
 import random
 from operator import attrgetter
-
-
 import cocotb
-from cocotb.triggers import Timer
+
 
 def read_tree():
     yaml_file = os.getenv("BACKANNOTATED_YAML")
@@ -19,6 +15,7 @@ def read_tree():
     tree = nested_dict_to_tree(wishlist_dict)
     #print_tree(tree, style='ansi')
     return tree
+
 
 async def cycle(dut,node,read_mode,write_values):
     read_values = []
@@ -46,20 +43,18 @@ async def cycle(dut,node,read_mode,write_values):
     else:
         return True
 
+
 async def read(dut,node):
     return await cycle(dut,node,1,None)
+
 
 async def write(dut,node, write_values):
     return await cycle(dut,node,0,write_values)
 
 
-
-
-
 @cocotb.test()
 async def register_test(dut):
     """Testing registers"""
-    
     # Configuring clock
     clock = Clock(dut.clk_i, 10, units="ns")  # Create a 10ns period clock on port clk
     cocotb.start_soon(clock.start(start_high=False)) # Start the clock. Start it low to avoid issues on the first RisingEdge
@@ -90,10 +85,4 @@ async def register_test(dut):
             actual = await read(dut,node)
             print(node.stimulus,actual[0],node.permission,node.path_name)
             assert node.stimulus == actual[0], f'Actual data for Node {node.path_name} {actual[0]} is different than applied stimulus {node.stimulus}'
-
-
-
-
-
-
 
