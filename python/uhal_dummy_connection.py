@@ -19,7 +19,7 @@ for key, value in d.items():
          value['written'] = random.randint(0,2**width-1)
          hw.getNode(key).write(value['written'])
     else:
-         value['written'] = 'N/A'
+         value['written'] = 0
 hw.dispatch()
 
 # Reading values back and checking against errors
