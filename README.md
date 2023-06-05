@@ -12,3 +12,10 @@ conda create --name wishlist --file wishlist/requirements.txt -c conda-forge -y
 ```
 
 
+## Getting started
+
+- [ ] Activating environment
+```
+conda activate wishlist
+```
+
