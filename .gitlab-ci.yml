@@ -24,3 +24,20 @@ uhal_simulation:
   tags:
     - wishlist
 
+example_cocotb_simulation:
+  stage: simulation
+  script:
+    - conda activate wishlist
+    - cd simulation
+    - GUI=0 DESIGN=example make
+  tags:
+    - cocotb
+
+l1calogfex_cocotb_simulation:
+  stage: simulation
+  script:
+    - conda activate wishlist
+    - cd simulation
+    - GUI=0 DESIGN=l1calogfex make
+  tags:
+    - cocotb
