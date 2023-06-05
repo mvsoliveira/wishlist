@@ -84,7 +84,7 @@ class wishlist(memory):
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
         # Generating software description file
-        self.generate_uhal_file()
+        #self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
@@ -203,7 +203,8 @@ class wishlist(memory):
             'address': address_list,
             'address_bits_lists': address_bits_lists,
             'register_bits_lists': get_register_bits_lists(address_list, address_bits_lists, node.width),
-            'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list)
+            'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list),
+            'node_width' : [node.width]*len(address_list)
         }))
         # Back-annottating address and mask
         node.address = [HexInt(addr) for addr in address_list]
@@ -219,10 +220,10 @@ class wishlist(memory):
 
     def get_address_string(self, address):
         return f'{{address:0{np.ceil(self.tree.address_width/4).astype(int)}X}}'.format(address=address)
-    def get_vhdl_bit_string(self, bits, side):
-        if len(bits) == 1 and side == 'signal':
+    def get_vhdl_bit_string(self, bits, side, node_width):
+        if node_width == 1 and side == 'signal':
             return ''
-        elif len(bits) == 1 and side == 'address':
+        elif len(bits) == 1:
             return f'({bits[0]})'
         else:
             return f'({bits[0]} downto {bits[-1]})'

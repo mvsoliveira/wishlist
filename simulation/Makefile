@@ -1,6 +1,8 @@
 SIM ?= questa
 GUI ?= 1
 TOPLEVEL_LANG ?= vhdl
+VCOM_ARGS=-2008
+export COCOTB_RESOLVE_X=VALUE_ERROR
 
 PWD=$(shell pwd)
 
