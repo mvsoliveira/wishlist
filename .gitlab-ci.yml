@@ -22,11 +22,12 @@ uhal_simulation:
     - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
     - python3 python/uhal_dummy_connection.py software/l1calogfex_uhal.xml
   tags:
-    - wishlist
+    - uhal
 
 example_cocotb_simulation:
   stage: simulation
   script:
+    - source /eda/set_siemens.sh
     - conda activate wishlist
     - cd simulation
     - GUI=0 DESIGN=example make
@@ -36,6 +37,7 @@ example_cocotb_simulation:
 l1calogfex_cocotb_simulation:
   stage: simulation
   script:
+    - source /eda/set_siemens.sh
     - conda activate wishlist
     - cd simulation
     - GUI=0 DESIGN=l1calogfex make
