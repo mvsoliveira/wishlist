@@ -35,6 +35,7 @@ int_{{ name.lower() }}_status <= {{ name.lower() }}_status_i;
 address_decoder_p : process (clk_i) is
 begin
     if rising_edge(clk_i) then
+         data_o <= (others => 'X');
 {#- Iterating status and control registers #}
 {%- for permission_regex, direction, strobe in (('^rw?$','status','read'),('^rw$','control','write')) %}
         if ({{ strobe }}_i = '1') then

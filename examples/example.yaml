@@ -13,7 +13,7 @@ children:
     children:
       - name: pu
         description: user code pu
-        length: 62
+        length: 2
         children:
           - name: fir
             description: fir filter
@@ -25,7 +25,12 @@ children:
                   - name: tap
                     description: each of the taps
                     length: 4
-                    width: 28
+                    width: 129
+                    permission: rw
+                  - name: rate
+                    description: each of the taps
+                    length: 4
+                    width: 33
                     permission: rw
   - name: pll_lock
     width: 1

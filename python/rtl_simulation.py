@@ -31,7 +31,7 @@ async def cycle(dut, address, mask, read_mode, write_values):
            dut.write_i.value = not(bool(read_mode))
            dut.address_i.value = addr
            if not read_mode:
-               dut.data_i = write_values[i]
+               dut.data_i.value = write_values[i]
         else:
            dut.read_i.value = 0
            dut.write_i.value = 0

@@ -84,7 +84,7 @@ class wishlist(memory):
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
         # Generating software description file
-        #self.generate_uhal_file()
+        self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
@@ -271,8 +271,8 @@ class wishlist(memory):
         # Masking sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
             if node.width > 32:
-                raise ValueError(
-                    f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
+                print(f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
+                return -1
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address

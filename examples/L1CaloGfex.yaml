@@ -204,11 +204,3 @@ children:
   description: Status of global reset, 0x14 on done
   mask: 0xFFFFFFFF
   permission: r
-- name: TESTR
-  width: 48
-  description: Status of global reset, 0x14 on done
-  permission: r
-- name: TESTRW
-  width: 129
-  description: Control of global reset, 0x14 on done
-  permission: rw
