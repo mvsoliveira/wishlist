@@ -128,14 +128,6 @@ async def register_test(dut, logger, tree, shufle_order=1):
     # Extracting tree of nodes
     nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
 
-    # writing 0 to all address offsets to make sure no unresolvable bit exists in read cycles of RMW cycles of stimulus writing and checking
-    if shufle_order: random.shuffle(nodes)
-    for node in nodes:
-        if node.permission == 'rw':
-            logger.debug(f'Writing zero to {node.path_name}')
-            await write(dut,node.address,node.mask,[0]*len(node.address))
-
-
     # Writing stimullus
     if shufle_order: random.shuffle(nodes)
     for node in nodes:
