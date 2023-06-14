@@ -40,8 +40,10 @@ def get_node_names(node,direction):
         name = node.path_name[1:].replace('/', '_').lower()
         if node.width > 1:
             names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
+            names['zeroes'] = "(others => '0')"
         else:
             names['vector'] = f'std_logic'
+            names['zeroes'] = "'0'"
         names['type_name'] = f'{name}_subtype'
         # full name for address decoder only
         names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
@@ -71,7 +73,8 @@ class wishlist(memory):
         self.create_tree()
         self.computing_width()
         self.set_jinja_environment()
-        self.generate_vhdl_package_file()
+        self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')
+        self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
         # starting memory object
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
@@ -241,9 +244,9 @@ class wishlist(memory):
         self.environment.globals['get_full_name'] = get_full_name
         self.environment.globals['get_node_names'] = get_node_names
 
-    def generate_vhdl_package_file(self):
-        template = self.environment.get_template("vhdl_package.jinja2")
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_pkg.vhd"
+    def generate_vhdl_file(self, template, suffix):
+        template = self.environment.get_template(template)
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.vhd"
         content = template.render(self.wishlist_dict,
                                   registers=list(self.register_nodes_iter()),
                                   hierarchies=list(self.hierarchical_nodes_iter()),
