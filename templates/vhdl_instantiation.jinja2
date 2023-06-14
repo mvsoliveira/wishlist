@@ -24,7 +24,7 @@ signal data_out : std_logic_vector({{ address_width-1 }} downto 0);
 
 begin
 {# Iterating through registers #}
--- Setting status registers
+-- Setting status registers and dumping control registers as a commented line
 {%- for register in registers %}
     {%- if register.permission == 'r' %}
 {{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['zeroes'] }};
