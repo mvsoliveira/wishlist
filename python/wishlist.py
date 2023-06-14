@@ -74,7 +74,6 @@ class wishlist(memory):
         self.computing_width()
         self.set_jinja_environment()
         self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')
-        self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
         # starting memory object
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
@@ -92,6 +91,7 @@ class wishlist(memory):
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
         self.generate_vhdl_address_decoder_file()
+        self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
         # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
