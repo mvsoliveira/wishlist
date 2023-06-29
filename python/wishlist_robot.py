@@ -1,8 +1,6 @@
-import yaml
 import os
-from bigtree import nested_dict_to_tree, tree_to_nested_dict, print_tree, postorder_iter, preorder_iter, Node, \
-    yield_tree
-from example_custom_node import AXINode as CustomNode
+from bigtree import preorder_iter
+from wishlist_axi_node import wishlist_axi_node as CustomNode
 from utils import get_logger, log_tree, read_tree
 import logging
 import random
@@ -29,9 +27,9 @@ class wishlist_robot(object):
                 # Generating stimulus
                 stimulus = random.randint(0, 2 ** node.width - 1)
                 # Writing stimulus
-                node.write_node(stimulus)
+                node.write(stimulus)
                 # Reading node
-                value = node.read_node()
+                value = node.read()
                 # Checking read value against stimulus for errors
                 if value != stimulus:
                     node.logger.critical(f'node check error at iteration {i}: {value} (0x{value:08x}), expected: {stimulus}')
