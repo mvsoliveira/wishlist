@@ -16,23 +16,26 @@ class wishlist_robot(object):
         self.tree = read_tree(CustomNode)
         log_tree(self.tree, self.logger)
 
-    def stress_test(self, nodes=None, N=100):
+    def stress_test(self, nodes=None, N=1000):
+        # testing the entire tree if nodes is not defined
         if nodes is None:
             nodes = self.tree
         # Making sure only leaves and rw registers are tested
         nodes = [n for n in nodes if (n.permission == 'rw' and n.is_leaf)]
+        # Testing all register N times
         for i in range(N):
             for node in nodes:
-                node.stimulus = random.randint(0, 2 ** node.width - 1)
-                node.write(node.stimulus)
+                stimulus = random.randint(0, 2 ** node.width - 1)
+                node.write(stimulus)
                 value = node.read_node()
-                if value != node.stimulus:
-                    node.logger.error('register error: {node.path_name}: {value} (0x{value:08x}) {node.stimulus}')
-                node.logger.debug(f'{value} (0x{value:08x}) {node.stimulus}')
-            robot.logger.info(f'stress_test {i+1} out of {N}')
+                if value != stimulus:
+                    node.logger.error('node check error: {value} (0x{value:08x}), expected: {node.stimulus}')
+                node.logger.debug(f'{value} (0x{value:08x}) {stimulus}')
+            if not i % 100:
+                robot.logger.info(f'stress_test {i+1} out of {N}')
 
 
 if __name__ == '__main__':
     robot = wishlist_robot()
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and node.permission == 'rw' and 'PB_' in node.name))
-    robot.stress_test(nodes)
+    robot.stress_test(nodes,N=1000000)
