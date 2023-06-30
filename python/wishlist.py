@@ -117,7 +117,6 @@ class wishlist(memory):
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
             # Making sure address is read as HexInt
-            print(self.wishlist_dict)
             self.wishlist_dict['address'] = HexInt(self.wishlist_dict['address'])
             self.wishlist_dict['address_size'] = HexInt(self.wishlist_dict['address_size'])
 

@@ -16,11 +16,19 @@ wishlist_compilation:
       - firmware
       - software
 
-uhal_simulation:
+l1calogfex_uhal_simulation:
   stage: simulation
   script:
     - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
     - python3 python/uhal_dummy_connection.py software/l1calogfex_uhal.xml
+  tags:
+    - uhal
+
+example_uhal_simulation:
+  stage: simulation
+  script:
+    - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
+    - python3 python/uhal_dummy_connection.py software/example_uhal.xml
   tags:
     - uhal
 
@@ -43,3 +51,4 @@ l1calogfex_cocotb_simulation:
     - GUI=0 DESIGN=l1calogfex make
   tags:
     - cocotb
+
