@@ -12,6 +12,7 @@ from report import formatting
 import xml.dom.minidom
 import pathlib
 import sys
+import random
 
 
 def attr_in_family(node, attr, value):
@@ -36,14 +37,18 @@ def get_full_name(node,direction):
 
 def get_node_names(node,direction):
     names = {}
+    if not hasattr(node,'stimulus'):
+        node.stimulus = 0
     if node.is_leaf:
         name = node.path_name[1:].replace('/', '_').lower()
         if node.width > 1:
             names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
             names['zeroes'] = "(others => '0')"
+            names['stimulus'] = f"std_logic_vector(to_unsigned({node.stimulus},{node.width}))"
         else:
             names['vector'] = f'std_logic'
             names['zeroes'] = "'0'"
+            names['stimulus'] = "'{node.stimulus}'"
         names['type_name'] = f'{name}_subtype'
         # full name for address decoder only
         names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
@@ -78,7 +83,9 @@ class wishlist(memory):
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
         self.flattening()
-        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description'])
+        # Assigning stimulus for instantiation example and hardware validation
+        self.generating_stimulus()
+        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description', 'stimulus'])
         # Allocation
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
@@ -110,6 +117,7 @@ class wishlist(memory):
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
             # Making sure address is read as HexInt
+            print(self.wishlist_dict)
             self.wishlist_dict['address'] = HexInt(self.wishlist_dict['address'])
             self.wishlist_dict['address_size'] = HexInt(self.wishlist_dict['address_size'])
 
@@ -151,6 +159,11 @@ class wishlist(memory):
                     break
                     #print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission'])
 
+    def generating_stimulus(self):
+        # Generating random number using path_name as seed, so the number is unchanged in different runs
+        for node in self.register_nodes_iter():
+            random.seed(node.path_name)
+            node.stimulus = random.randint(0, 2 ** node.width - 1)
     def register_nodes_iter(self):
         return preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf)
 
@@ -282,6 +295,7 @@ class wishlist(memory):
         # Now converting absolute to relative addresses (requirement from uHAL), making sure top remains with addr 0x0
         for node in postorder_iter(self.tree, filter_condition=lambda node: node.path_name.count('/') > 2):
             node.address = [node.address[0]-node.parent.address[0]]
+        print_tree(self.tree, all_attrs=True)
         # Rendering XML file
         template = self.environment.get_template("xml_uhal.jinja2")
         content = template.render(tree=self.tree)

@@ -30,7 +30,7 @@ begin
 -- Setting status registers and dumping control registers as a commented line
 {%- for register in registers %}
     {%- if register.permission == 'r' %}
-{{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['zeroes'] }};
+{{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['stimulus'] }};
     {%- else %}
 -- => {{ get_node_names(register, direction='control')['full_name'] }};
     {%- endif %}
