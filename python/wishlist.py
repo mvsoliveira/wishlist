@@ -44,7 +44,7 @@ def get_node_names(node,direction):
         if node.width > 1:
             names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
             names['zeroes'] = "(others => '0')"
-            names['stimulus'] = f"std_logic_vector(to_unsigned({node.stimulus},{node.width}))"
+            names['stimulus'] = f'"{{value:0{node.width}b}}"'.format(value=node.stimulus)
         else:
             names['vector'] = f'std_logic'
             names['zeroes'] = "'0'"

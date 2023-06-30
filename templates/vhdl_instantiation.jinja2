@@ -4,7 +4,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 library work;
 use work.{{ name.lower() }}_pkg.all;
 
@@ -31,7 +30,7 @@ begin
 -- Setting status registers and dumping control registers as a commented line
 {%- for register in registers %}
     {%- if register.permission == 'r' %}
-{{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['stimulus'] }};
+{{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['stimulus'] }}; -- ({{ register.stimulus }})
     {%- else %}
 -- => {{ get_node_names(register, direction='control')['full_name'] }};
     {%- endif %}
