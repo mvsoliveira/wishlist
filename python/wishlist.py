@@ -85,7 +85,7 @@ class wishlist(memory):
         self.flattening()
         # Assigning stimulus for instantiation example and hardware validation
         self.generating_stimulus()
-        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description', 'stimulus'])
+        #print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description', 'stimulus'])
         # Allocation
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
@@ -287,8 +287,7 @@ class wishlist(memory):
         # Masking sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
             if node.width > 32:
-                print(f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
-                return -1
+                print(f'Omitting node {node.path_name} because uHAL does not support width higher than 32.')
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address
