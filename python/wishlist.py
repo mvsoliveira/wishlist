@@ -48,7 +48,7 @@ def get_node_names(node,direction):
         else:
             names['vector'] = f'std_logic'
             names['zeroes'] = "'0'"
-            names['stimulus'] = "'{node.stimulus}'"
+            names['stimulus'] = f"'{node.stimulus}'"
         names['type_name'] = f'{name}_subtype'
         # full name for address decoder only
         names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
