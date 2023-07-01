@@ -99,6 +99,7 @@ class wishlist(memory):
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
         self.generate_vhdl_address_decoder_file()
         self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
+        self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
         # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
@@ -330,3 +331,5 @@ def xml_beautify(content):
 
 if __name__ == '__main__':
     obj = wishlist(sys.argv[1])
+    #for path in ['firmware/l1calogfex_backannotated.yaml', 'firmware/l1calogfex_pkg.vhd', 'firmware/l1calogfex_address_decoder.vhd', 'firmware/l1calogfex_instantiation.vhd', 'examples/L1CaloGfex.yaml']:
+    #    os.system(f'scp {path} aiatlas-fw-03.cern.ch:git/register/zfpga/zfpga_top/source/')
