@@ -34,8 +34,8 @@ class wishlist_robot(object):
                 # Generating stimulus and writing if register permission is rw
                 if node.permission == 'rw':
                     node.stimulus = random.randint(0, 2 ** node.width - 1)
-                    # Writing stimulus
-                    node.write(node.stimulus)
+                # Writing stimulus
+                node.write(node.stimulus)
             # Shuffling nodes order before reading
             nodes = random.sample(nodes, len(nodes))
             for node in nodes:

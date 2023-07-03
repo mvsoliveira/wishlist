@@ -46,7 +46,7 @@ class wishlist_axi_node(Node):
 
     def write(self, value):
         if not self.permission == 'rw':
-            self.logger.critical(f'Node {self.path_name} permission is not rw, therefore no value can not be written to it' )
+            self.logger.critical(f'Terminating application while trying to this node. The respective permission is rw, therefore no value can not be written to it!' )
             sys.exit()
         # Reading all the registers associated with the node with the bus mask if any mask bit is 0
         if self.mask != [word_mask(self.bus_width) for _ in range(len(self.mask))]:
