@@ -3,6 +3,7 @@ from utils import registers_to_node, node_to_register, get_logger, word_mask
 from bigtree import Node
 import mmap
 import logging
+import sys
 
 
 class wishlist_axi_node(Node):
@@ -44,6 +45,9 @@ class wishlist_axi_node(Node):
         return value
 
     def write(self, value):
+        if not self.permission == 'rw':
+            self.logger.critical(f'Node {self.path_name} permission is not rw, therefore no value can not be written to it' )
+            sys.exit()
         # Reading all the registers associated with the node with the bus mask if any mask bit is 0
         if self.mask != [word_mask(self.bus_width) for _ in range(len(self.mask))]:
             read_values = self.read_words()
