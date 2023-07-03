@@ -228,10 +228,15 @@ children:
     - name: z_fpga_readout
       description: Readout monitoring registers
       children:
+        - {name: a_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using counters}
+        - {name: b_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using counters}
+        - {name: c_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using counters}
+        - {name: gbl_ddr_clk, width: 32, permission: r, description: Clock frequency monitoring using counters (560 MHz sent to pFPGAs, CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins through BUFGCTRL)}
+        - {name: zgt_clk, width: 32, permission: r, description: Clock frequency monitoring using counters (280 MHz used in the SERDES, CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins divided by 2 using BUFGCE_DIV)}
+        - {name: scr_clk, width: 32, permission: r, description: Clock frequency monitoring using counters, CLKOUT3 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins}
         - {name: pfpga_a_bcr_oddr, width: 16, permission: r, description: Signal frequency monitoring using counters}
         - {name: pfpga_b_bcr_oddr, width: 16, permission: r, description: Signal frequency monitoring using counters}
         - {name: pfpga_c_bcr_oddr, width: 16, permission: r, description: Signal frequency monitoring using counters}
-        - {name: zgt_clk, width: 32, permission: r, description: Clock frequency monitoring using counters}
         - {name: oscclk40m, width: 32, permission: r, description: Clock frequency monitoring using counters}
         - {name: idlyclk, width: 32, permission: r, description: Clock frequency monitoring using counters}
         - {name: initclk, width: 32, permission: r, description: Clock frequency monitoring using counters}

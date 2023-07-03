@@ -51,6 +51,6 @@ class wishlist_axi_node(Node):
             read_values = [0 for _ in range(len(self.mask))]
         # Writing combined data back
         write_values = node_to_register(value, self.address, self.mask, read_values, self.bus_width, self.logger)
-        self.logger.debug(f'Writing the following values {write_values[::-1]}')
-        self.write_words(write_values[::-1])
+        self.logger.debug(f'Writing the following values {write_values}')
+        self.write_words(write_values)
         return True

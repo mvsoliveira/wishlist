@@ -47,7 +47,10 @@ def node_to_register(value, address, mask, read_values, bus_width, logger):
         write_values.append(combined)
         # Incrementing node_lsb
         node_lsb += word_width  # incrementing LSB by word width
-    return write_values
+        # Returning reversed vector, because write values is appended using a for loop in reverse order
+        # This way the loop start by the least-significant word. However, the memory mapped allocation places
+        # the most significant word first, i.e. at the first address offset of the node
+    return write_values[::-1]
 
 
 def word_mask(width):
