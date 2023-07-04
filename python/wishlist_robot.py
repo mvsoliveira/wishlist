@@ -72,8 +72,7 @@ if __name__ == '__main__':
     time_reference_node = find_name(robot.tree,'ps_sys_clk')
     timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
     accumulator_nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
-    accumulators_df = pd.DataFrame({node.name: '' for node in accumulator_nodes},index=['Value']).T
-    accumulators_df.index.name = 'Node name'
+    accumulators_df = pd.DataFrame({'Value': [0]*len(accumulator_nodes)},index=[node.name for node in accumulator_nodes])
     i = 0
     n = 0
     while True:
