@@ -1,5 +1,5 @@
 import os
-from bigtree import preorder_iter
+from bigtree import preorder_iter, find_name
 from wishlist_axi_node import wishlist_axi_node
 from utils import get_logger, log_tree, read_tree
 import logging
@@ -16,7 +16,7 @@ class wishlist_robot(object):
         self.tree = read_tree(wishlist_axi_node)
         log_tree(self.tree, self.logger)
 
-    def stress_test(self, nodes=None, N=1000, test_only_rw=True):
+    def stress_test(self, nodes=None, N=1000, test_only_rw=False):
         start_time = time.time()
         # Testing the entire tree if nodes is not defined
         if nodes is None:
@@ -34,8 +34,8 @@ class wishlist_robot(object):
                 # Generating stimulus and writing if register permission is rw
                 if node.permission == 'rw':
                     node.stimulus = random.randint(0, 2 ** node.width - 1)
-                # Writing stimulus
-                node.write(node.stimulus)
+                    # Writing stimulus
+                    node.write(node.stimulus)
             # Shuffling nodes order before reading
             nodes = random.sample(nodes, len(nodes))
             for node in nodes:
@@ -56,4 +56,24 @@ class wishlist_robot(object):
 if __name__ == '__main__':
     robot = wishlist_robot(log_level=logging.INFO)
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
-    robot.stress_test(nodes, N=1000, test_only_rw=False)
+    robot.stress_test(nodes, N=10)
+    robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
+    clear_load_node = find_name(robot.tree,'clear_load')
+    time_reference_node = find_name(robot.tree,'ps_sys_clk')
+    timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
+    accumulator_nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
+    for i in range(3):
+        # Waiting for reference to reach desired time period
+        while timer_node.read() < 100e6:
+            pass
+        robot.logger.info(f'\nIteration {i}\n')
+        clear_load_node.write(1)
+        clear_load_node.write(0)
+        time_reference = time_reference_node.read()
+        robot.logger.info(time_reference)
+        for node in accumulator_nodes:
+            robot.logger.info(f'{node.path_name}: {node.represent(value=node.read(),reference=time_reference)}')
+
+
+    print()
+

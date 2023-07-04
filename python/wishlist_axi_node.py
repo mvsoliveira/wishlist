@@ -58,3 +58,9 @@ class wishlist_axi_node(Node):
         self.logger.debug(f'Writing the following values {write_values}')
         self.write_words(write_values)
         return True
+
+    def represent(self, value, **kwargs):
+        if hasattr(self,'representation'):
+            return eval(self.representation)
+        else:
+            return value

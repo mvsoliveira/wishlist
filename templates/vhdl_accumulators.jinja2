@@ -29,7 +29,7 @@ begin
 {# Iterating through registers #}
 -- Setting status registers and dumping control registers as a commented line
 {%- for register in registers %}
-    {%- if register.permission == 'r' and 'counters' in register.description %}
+    {%- if register.permission == 'r' and 'accumulator' in register.description %}
 
     accumulator_{{ register.name.replace('(','_').replace(')','') }}: entity work.accumulator
       generic map (

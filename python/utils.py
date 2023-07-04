@@ -13,7 +13,7 @@ def registers_to_node(address, mask, read_values, bus_width, logger):
         word_lsb = f'{{mask:0{bus_width}b}}'.format(mask=msk)[::-1].find('1')
         logger.debug(
             f'Shifting up value (0x{rdvl:x} >> {word_lsb}) from address 0x{addr:x} by {node_lsb} and adding to intermediate sum with value 0x{value:x}. The current word width is {word_width}.')
-        value += (rdvl >> word_lsb) << node_lsb
+        value += ((rdvl & msk) >> word_lsb) << node_lsb
         node_lsb += word_width  # incrementing LSB by word width
     return value
 
