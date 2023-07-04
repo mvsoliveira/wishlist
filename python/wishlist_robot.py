@@ -7,6 +7,7 @@ import random
 import socket
 import sys
 import time
+import pandas as pd
 
 
 class wishlist_robot(object):
@@ -62,18 +63,29 @@ if __name__ == '__main__':
     time_reference_node = find_name(robot.tree,'ps_sys_clk')
     timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
     accumulator_nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
-    for i in range(3):
-        # Waiting for reference to reach desired time period
-        while timer_node.read() < 100e6:
-            pass
-        robot.logger.info(f'\nIteration {i}\n')
-        clear_load_node.write(1)
-        clear_load_node.write(0)
-        time_reference = time_reference_node.read()
-        robot.logger.info(time_reference)
-        for node in accumulator_nodes:
-            robot.logger.info(f'{node.path_name}: {node.represent(value=node.read(),reference=time_reference)}')
+    accumulators_df = pd.DataFrame({node.name: '' for node in accumulator_nodes},index=['Value']).T
+    accumulators_df.index.name = 'Node name'
+    i = 0
+    while True:
+        try:
+            # Waiting for reference to reach desired time period
+            while timer_node.read() < 100e6:
+                pass
+            clear_load_node.write(1)
+            clear_load_node.write(0)
+            time_reference = time_reference_node.read()
+            for node in accumulator_nodes:
+                accumulators_df.loc[
+                    node.name, 'Value'] = f'{node.represent(value=node.read(), reference=time_reference)}'
+            os.system('clear')
+            robot.logger.info(f'Iteration {i} - refresh time: {time_reference * 10e-9} seconds')
+            print(accumulators_df)
+            i += 1
+        except KeyboardInterrupt:
+            sys.exit()
 
 
-    print()
+
+
+
 
