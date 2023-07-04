@@ -52,7 +52,16 @@ class wishlist_robot(object):
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')
         self.logger.info(f'Stress test with {N} iteration finished in {time.time() - start_time} seconds without errors')
 
+def display(chars):
+    s = '\n'.join(''.join(row) for row in chars)
+    print(s)
+    return len(s)
 
+def cls(n = 0):
+    if n == 0:
+        os.system('cls')
+    else:
+        print('\b'*n)
 
 if __name__ == '__main__':
     robot = wishlist_robot(log_level=logging.INFO)
@@ -66,6 +75,7 @@ if __name__ == '__main__':
     accumulators_df = pd.DataFrame({node.name: '' for node in accumulator_nodes},index=['Value']).T
     accumulators_df.index.name = 'Node name'
     i = 0
+    n = 0
     while True:
         try:
             # Waiting for reference to reach desired time period
@@ -77,14 +87,27 @@ if __name__ == '__main__':
             for node in accumulator_nodes:
                 accumulators_df.loc[
                     node.name, 'Value'] = f'{node.represent(value=node.read(), reference=time_reference)}'
+            # Generating string before clearing the screen to avoid flickering
+            df_str = accumulators_df.to_string(col_space=30)
+            i += 1
             os.system('clear')
             robot.logger.info(f'Iteration {i} - refresh time: {time_reference * 10e-9} seconds')
-            print(accumulators_df)
-            i += 1
+            print(df_str)
         except KeyboardInterrupt:
             sys.exit()
 
+chars = []
+for i in range(40):
+    chars.append(["-"]*40)
 
+for i in range(100):
+    n = 0
+    r = random.randint(0,39)
+    c = random.randint(0,39)
+    chars[r][c] = "X"
+    time.sleep(0.1)
+    cls(n)
+    n = display(chars)
 
 
 
