@@ -8,6 +8,8 @@ import socket
 import sys
 import time
 import pandas as pd
+from pathlib import Path
+from datetime import datetime
 
 
 class wishlist_robot(object):
@@ -52,7 +54,8 @@ class wishlist_robot(object):
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')
         self.logger.info(f'Stress test with {N} iteration finished in {time.time() - start_time} seconds without errors')
 
-    def launch_accumulators(self):
+    def launch_accumulators(self, display=True, save=True):
+        Path(f'/tmp/wishlist_robot').mkdir(parents=True, exist_ok=True)
         clear_load_node = find_name(self.tree, 'clear_load')
         time_reference_node = find_name(self.tree, 'ps_sys_clk')
         timer_node = find_name(self.tree, 'ps_sys_clk_no_shadow')
@@ -61,6 +64,7 @@ class wishlist_robot(object):
         accumulators_df = pd.DataFrame({'Value': [0] * len(accumulator_nodes)},
                                        index=[node.name for node in accumulator_nodes])
         i = 0
+        save_df_list = []
         while True:
             try:
                 # Waiting for reference to reach desired time period
@@ -69,15 +73,36 @@ class wishlist_robot(object):
                 clear_load_node.write(1)
                 clear_load_node.write(0)
                 time_reference = time_reference_node.read()
+                now = datetime.now()
+                save_dict = {}
                 for node in accumulator_nodes:
-                    accumulators_df.loc[
-                        node.name, 'Value'] = f'{node.represent(value=node.read(), reference=time_reference)}'
-                # Generating string before clearing the screen to avoid flickering
-                df_str = accumulators_df.to_string(col_space=30)
+                    value = node.read()
+                    rate = node.convert(value=value, reference=time_reference, parameter="conversion",)
+                    if display:
+                        representation = node.convert(value=value, rate=rate, parameter="representation")
+                        accumulators_df.loc[
+                            node.name, 'Value'] = f'{representation}'
+                    if save:
+                        save_dict[node.name] = rate
+
+                if display:
+                    # Generating string before clearing the screen to avoid flickering
+                    df_str = accumulators_df.to_string(col_space=30)
+                if save:
+                    save_df = pd.DataFrame(save_dict, index=[now])
+                    save_df_list.append(save_df)
+                    if not i % 120:
+                        save_dfs = pd.concat(save_df_list)
+                        now_str = f'{now}'.replace(' ','_')
+                        filename = f'/tmp/wishlist_robot/accumulators_data_{now_str}.pickle'
+                        save_dfs.to_pickle(filename)
+                        self.logger.info(f'Iteration {i} - {now} - saved file {filename} ')
+                        save_df_list = []
                 i += 1
-                os.system('clear')
-                self.logger.info(f'Iteration {i} - refresh time: {time_reference * 10e-9} seconds')
-                print(df_str)
+                if display:
+                    os.system('clear')
+                    self.logger.info(f'Iteration {i} - {now} - refresh time: {time_reference * 10e-9} seconds ')
+                    print(df_str)
             except KeyboardInterrupt:
                 sys.exit()
 
@@ -87,7 +112,7 @@ if __name__ == '__main__':
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
-    robot.launch_accumulators()
+    robot.launch_accumulators(display=False)
 
 
 

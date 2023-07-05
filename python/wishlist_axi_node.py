@@ -59,8 +59,8 @@ class wishlist_axi_node(Node):
         self.write_words(write_values)
         return True
 
-    def represent(self, value, **kwargs):
-        if hasattr(self,'representation'):
-            return eval(self.representation)
+    def convert(self, value, parameter, **kwargs):
+        if hasattr(self,parameter):
+            return eval(getattr(self, parameter))
         else:
             return value
