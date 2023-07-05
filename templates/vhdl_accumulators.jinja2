@@ -31,19 +31,29 @@ begin
 {%- for register in registers %}
     {%- if register.permission == 'r' and 'accumulator' in register.description %}
 
+    edge_detector_{{ register.name.replace('(','_').replace(')','') }}: entity work.edge_detector
+      generic map (
+        POLARITY    => 1,
+        SYNCHRONISE => true,
+        PULSE_WIDTH => 1)
+      port map (
+        clk     => {{ register.name }},
+        sig_i   => l1calogfex_control.monitoring.clear_load,
+        pulse_o => clear_load_{{ register.name }});
+
     accumulator_{{ register.name.replace('(','_').replace(')','') }}: entity work.accumulator
       generic map (
         WIDTH_O            => {{ get_node_names(register, direction='status')['full_name'] }}'length,
         WIDTH_I            => 1,
-        SYNCHRONISE_INPUT  => true,
+        SYNCHRONISE_INPUT  => false,
         INCREMENT_MODE     => 2,
         SHADOW_REGISTER    => true)
       port map (
-        clk_i         => proc_sys_clk,
+        clk_i         => {{ register.name }},
         ena_i         => '1',
-        rst_i         => clear_load_ps,
-        load_i        => clear_load_ps,
-        input_i(0)    => {{ register.name }},
+        rst_i         => clear_load_{{ register.name }},
+        load_i        => clear_load_{{ register.name }},
+        input_i(0)    => '1',
         accumulator_o => {{ get_node_names(register, direction='status')['full_name'] }});
 
     {%- endif %}

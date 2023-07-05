@@ -212,7 +212,7 @@ children:
 - name: monitoring
   description: No-dead-time online monitoring
   children:
-    - {name: ps_sys_clk, width: 32, permission: r, description: Reference clock frequency using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
+    - {name: ps_sys_clk, width: 32, permission: r, description: Reference clock frequency using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
     - {name: ps_sys_clk_no_shadow, width: 32, permission: r, description: Reference clock frequency using accumulator}
     - {name: clear_load, width: 1, permission: rw, description: Clear and load signal}
     - {name: TEMP_S1_ALERT, width: 4, permission: r, description: Signal frequency monitoring using accumulator}
@@ -229,21 +229,21 @@ children:
     - name: z_fpga_readout
       description: Readout monitoring registers
       children:
-        - {name: a_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: b_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: c_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: gbl_ddr_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (560 MMHz sent to pFPGAs - CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins through BUFGCTRL), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: zgt_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (280 MMHz used in the SERDES - CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins divided by 2 using BUFGCE_DIV), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: scr_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator - CLKOUT3 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: pfpga_a_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.3f} kHz)'"}
-        - {name: pfpga_b_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.3f} kHz)'"}
-        - {name: pfpga_c_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.3f} kHz)'"}
-        - {name: oscclk40m, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: idlyclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: initclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: ttc_recclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: gte_refclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (aka flx_clk or ttc_240_clk), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
-        - {name: gti_outclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (aka ttc_280_clk), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.3f} MHz)'"}
+        - {name: a_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: b_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: c_to_z_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: gbl_ddr_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (560 MMHz sent to pFPGAs - CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins through BUFGCTRL), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: zgt_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (280 MMHz used in the SERDES - CLKOUT1 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins divided by 2 using BUFGCE_DIV), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: scr_clk, width: 32, permission: r, description: Clock frequency monitoring using accumulator - CLKOUT3 from zfpga_readout_ins/zreadout_mmcm_ins/mmcm_ins, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: pfpga_a_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.6f} kHz)'"}
+        - {name: pfpga_b_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.6f} kHz)'"}
+        - {name: pfpga_c_bcr_oddr, width: 32, permission: r, description: Signal frequency monitoring using accumulator, representation: "f'{value} ({1e5*value/(kwargs[\"reference\"]):.6f} kHz)'"}
+        - {name: oscclk40m, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: idlyclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: initclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: ttc_recclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator, representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: gte_refclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (aka flx_clk or ttc_240_clk), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
+        - {name: gti_outclk, width: 32, permission: r, description: Clock frequency monitoring using accumulator (aka ttc_280_clk), representation: "f'{value} ({1e2*value/(kwargs[\"reference\"]):.6f} MHz)'"}
         - {name: ttc_tx_busy, width: 4, length: 4, permission: r, description: Signal frequency monitoring using accumulator}
         - {name: daq_tx_busy, width: 4, length: 8, permission: r, description: Signal frequency monitoring using accumulator}
         - {name: daq_tx_rdy, width: 4, length: 8, permission: r, description: Signal frequency monitoring using accumulator}

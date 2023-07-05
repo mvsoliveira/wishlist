@@ -52,61 +52,44 @@ class wishlist_robot(object):
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')
         self.logger.info(f'Stress test with {N} iteration finished in {time.time() - start_time} seconds without errors')
 
-def display(chars):
-    s = '\n'.join(''.join(row) for row in chars)
-    print(s)
-    return len(s)
+    def launch_accumulators(self):
+        clear_load_node = find_name(self.tree, 'clear_load')
+        time_reference_node = find_name(self.tree, 'ps_sys_clk')
+        timer_node = find_name(self.tree, 'ps_sys_clk_no_shadow')
+        accumulator_nodes = list(
+            preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
+        accumulators_df = pd.DataFrame({'Value': [0] * len(accumulator_nodes)},
+                                       index=[node.name for node in accumulator_nodes])
+        i = 0
+        while True:
+            try:
+                # Waiting for reference to reach desired time period
+                while timer_node.read() < 50e6:
+                    pass
+                clear_load_node.write(1)
+                clear_load_node.write(0)
+                time_reference = time_reference_node.read()
+                for node in accumulator_nodes:
+                    accumulators_df.loc[
+                        node.name, 'Value'] = f'{node.represent(value=node.read(), reference=time_reference)}'
+                # Generating string before clearing the screen to avoid flickering
+                df_str = accumulators_df.to_string(col_space=30)
+                i += 1
+                os.system('clear')
+                self.logger.info(f'Iteration {i} - refresh time: {time_reference * 10e-9} seconds')
+                print(df_str)
+            except KeyboardInterrupt:
+                sys.exit()
 
-def cls(n = 0):
-    if n == 0:
-        os.system('cls')
-    else:
-        print('\b'*n)
 
 if __name__ == '__main__':
     robot = wishlist_robot(log_level=logging.INFO)
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
-    clear_load_node = find_name(robot.tree,'clear_load')
-    time_reference_node = find_name(robot.tree,'ps_sys_clk')
-    timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
-    accumulator_nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
-    accumulators_df = pd.DataFrame({'Value': [0]*len(accumulator_nodes)},index=[node.name for node in accumulator_nodes])
-    i = 0
-    n = 0
-    while True:
-        try:
-            # Waiting for reference to reach desired time period
-            while timer_node.read() < 100e6:
-                pass
-            clear_load_node.write(1)
-            clear_load_node.write(0)
-            time_reference = time_reference_node.read()
-            for node in accumulator_nodes:
-                accumulators_df.loc[
-                    node.name, 'Value'] = f'{node.represent(value=node.read(), reference=time_reference)}'
-            # Generating string before clearing the screen to avoid flickering
-            df_str = accumulators_df.to_string(col_space=30)
-            i += 1
-            os.system('clear')
-            robot.logger.info(f'Iteration {i} - refresh time: {time_reference * 10e-9} seconds')
-            print(df_str)
-        except KeyboardInterrupt:
-            sys.exit()
+    robot.launch_accumulators()
 
-chars = []
-for i in range(40):
-    chars.append(["-"]*40)
 
-for i in range(100):
-    n = 0
-    r = random.randint(0,39)
-    c = random.randint(0,39)
-    chars[r][c] = "X"
-    time.sleep(0.1)
-    cls(n)
-    n = display(chars)
 
 
 
