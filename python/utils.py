@@ -65,8 +65,9 @@ def get_logger(name, level, format=logging.Formatter('%(asctime)s - %(levelname)
     logger.setLevel(level)
     return logger
 
-def read_tree(CustomNode=Node):
-    yaml_file  = os.getenv("BACKANNOTATED_YAML")
+def read_tree(yaml_file=None, CustomNode=Node):
+    if yaml_file is None:
+        yaml_file  = os.getenv("BACKANNOTATED_YAML")
     with open(yaml_file, "r") as stream:
         wishlist_dict = yaml.safe_load(stream)
     return nested_dict_to_tree(wishlist_dict, node_type=CustomNode)

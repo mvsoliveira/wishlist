@@ -13,10 +13,10 @@ from datetime import datetime
 
 
 class wishlist_robot(object):
-    def __init__(self, log_level=logging.INFO):
+    def __init__(self, yaml_file=None, log_level=logging.INFO):
         self.logger = get_logger('Wishlist Robot', log_level)
         self.logger.info(f'Starting robot in {socket.gethostname()} using the register tree shown below loaded from {os.getenv("BACKANNOTATED_YAML")}')
-        self.tree = read_tree(wishlist_axi_node)
+        self.tree = read_tree(yaml_file,wishlist_axi_node)
         log_tree(self.tree, self.logger)
 
     def stress_test(self, nodes=None, N=1000, test_only_rw=False):
@@ -54,13 +54,13 @@ class wishlist_robot(object):
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')
         self.logger.info(f'Stress test with {N} iteration finished in {time.time() - start_time} seconds without errors')
 
-    def launch_accumulators(self, display=True, save=True):
-        Path(f'/tmp/wishlist_robot').mkdir(parents=True, exist_ok=True)
+    def launch_accumulators(self, display=True, save=True, base_path='/software/tmp'):
+        Path(f'{base_path}').mkdir(parents=True, exist_ok=True)
         clear_load_node = find_name(self.tree, 'clear_load')
         time_reference_node = find_name(self.tree, 'ps_sys_clk')
         timer_node = find_name(self.tree, 'ps_sys_clk_no_shadow')
         accumulator_nodes = list(
-            preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf and 'accumulator' in node.description))
+            preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf and ('accumulator' in node.description or 'INIT_STAT' in node.name)))
         accumulators_df = pd.DataFrame({'Value': [0] * len(accumulator_nodes)},
                                        index=[node.name for node in accumulator_nodes])
         i = 0
@@ -94,9 +94,9 @@ class wishlist_robot(object):
                     if not i % 120:
                         save_dfs = pd.concat(save_df_list)
                         now_str = f'{now}'.replace(' ','_')
-                        filename = f'/tmp/wishlist_robot/accumulators_data_{now_str}.pickle'
+                        filename = f'{base_path}/accumulators_data_{now_str}.pickle'
                         save_dfs.to_pickle(filename)
-                        self.logger.info(f'Iteration {i} - {now} - saved file {filename} ')
+                        self.logger.info(f'Iteration {i} - saved file {filename} ')
                         save_df_list = []
                 i += 1
                 if display:
@@ -108,7 +108,7 @@ class wishlist_robot(object):
 
 
 if __name__ == '__main__':
-    robot = wishlist_robot(log_level=logging.INFO)
+    robot = wishlist_robot(yaml_file='../firmware/l1calogfex_backannotated.yaml', log_level=logging.INFO)
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
