@@ -54,15 +54,10 @@ class wishlist_robot(object):
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')
         self.logger.info(f'Stress test with {N} iteration finished in {time.time() - start_time} seconds without errors')
 
-    def launch_accumulators(self, display=True, save=True, base_path='/software/tmp'):
+    def launch_online_monitoring(self, monitored_nodes, clear_load_node, time_reference_node, timer_node, display=True, save=True, base_path='/software/tmp'):
         Path(f'{base_path}').mkdir(parents=True, exist_ok=True)
-        clear_load_node = find_name(self.tree, 'clear_load')
-        time_reference_node = find_name(self.tree, 'ps_sys_clk')
-        timer_node = find_name(self.tree, 'ps_sys_clk_no_shadow')
-        accumulator_nodes = list(
-            preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf and ('accumulator' in node.description or 'INIT_STAT' in node.name)))
-        accumulators_df = pd.DataFrame({'Value': [0] * len(accumulator_nodes)},
-                                       index=[node.name for node in accumulator_nodes])
+        accumulators_df = pd.DataFrame({'Value': [0] * len(monitored_nodes)},
+                                       index=[node.name for node in monitored_nodes])
         i = 0
         save_df_list = []
         while True:
@@ -75,7 +70,7 @@ class wishlist_robot(object):
                 time_reference = time_reference_node.read()
                 now = datetime.now()
                 save_dict = {}
-                for node in accumulator_nodes:
+                for node in monitored_nodes:
                     value = node.read()
                     rate = node.convert(value=value, reference=time_reference, parameter="conversion",)
                     if display:
@@ -112,7 +107,17 @@ if __name__ == '__main__':
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
-    robot.launch_accumulators(display=False)
+    monitored_nodes = list(
+        preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and (
+                    'accumulator' in node.description or 'INIT_STAT' in node.name)))
+    clear_load_node = find_name(robot.tree, 'clear_load')
+    time_reference_node = find_name(robot.tree, 'ps_sys_clk')
+    timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
+    robot.launch_online_monitoring(monitored_nodes=monitored_nodes,
+                                   clear_load_node=clear_load_node,
+                                   time_reference_node=time_reference_node,
+                                   timer_node=timer_node,
+                                   display=False)
 
 
 
