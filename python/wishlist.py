@@ -37,18 +37,18 @@ def get_full_name(node,direction):
 
 def get_node_names(node,direction):
     names = {}
-    if not hasattr(node,'stimulus'):
-        node.stimulus = 0
     if node.is_leaf:
         name = node.path_name[1:].replace('/', '_').lower()
         if node.width > 1:
             names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
             names['zeroes'] = "(others => '0')"
-            names['stimulus'] = f'"{{value:0{node.width}b}}"'.format(value=node.stimulus)
+            if hasattr(node,'stimulus'):
+                names['stimulus'] = f'"{{value:0{node.width}b}}"'.format(value=node.stimulus)
         else:
             names['vector'] = f'std_logic'
             names['zeroes'] = "'0'"
-            names['stimulus'] = f"'{node.stimulus}'"
+            if hasattr(node, 'stimulus'):
+                names['stimulus'] = f"'{node.stimulus}'"
         names['type_name'] = f'{name}_subtype'
         # full name for address decoder only
         names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
@@ -92,6 +92,7 @@ class wishlist(memory):
             self.allocate(node)
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
+        print_tree(self.tree,all_attrs=True)
         # Generating software description file
         self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
@@ -140,19 +141,19 @@ class wishlist(memory):
             for node in preorder_iter(self.tree):
                 if hasattr(node,'length'):
                     for i in range(node.length):
+                        attributes = dict(node.describe(exclude_attributes=["name", 'address', 'parent', 'children', 'description', 'length'],exclude_prefix="_"))
                         children = deepcopy(node.children)
-                        attributes = {}
                         if hasattr(node,'description'):
                             attributes['description'] = f'Instance {i}; {node.description}'
                         if hasattr(node, 'address'):
                             if i == 0:
                                 attributes['address'] = node.address
-                        if hasattr(node, 'mask'):
-                            attributes['mask'] = node.mask
-                        if hasattr(node, 'width'):
-                            attributes['width'] = node.width
-                        if hasattr(node, 'permission'):
-                            attributes['permission'] = node.permission
+                        # if hasattr(node, 'mask'):
+                        #     attributes['mask'] = node.mask
+                        # if hasattr(node, 'width'):
+                        #     attributes['width'] = node.width
+                        # if hasattr(node, 'permission'):
+                        #     attributes['permission'] = node.permission
                         a = Node(f'{node.name}({i})', parent=node.parent, children=list(children), **attributes)
                     shift_nodes(self.tree, [node.path_name[1:]], [None])
                     finished = False
@@ -287,14 +288,13 @@ class wishlist(memory):
         # Masking sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
             if node.width > 32:
-                print(f'Omitting node {node.path_name} because uHAL does not support width higher than 32.')
+                print(f'Omitting node {node.path_name} in XML output because uHAL does not support width higher than 32.')
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address
         # Now converting absolute to relative addresses (requirement from uHAL), making sure top remains with addr 0x0
         for node in postorder_iter(self.tree, filter_condition=lambda node: node.path_name.count('/') > 2):
             node.address = [node.address[0]-node.parent.address[0]]
-        print_tree(self.tree, all_attrs=True)
         # Rendering XML file
         template = self.environment.get_template("xml_uhal.jinja2")
         content = template.render(tree=self.tree)

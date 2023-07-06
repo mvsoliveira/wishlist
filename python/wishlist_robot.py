@@ -63,13 +63,13 @@ class wishlist_robot(object):
         while True:
             try:
                 # Waiting for reference to reach desired time period
-                while timer_node.read() < 50e6:
+                while timer_node.read() < 1:
                     pass
                 clear_load_node.write(1)
                 clear_load_node.write(0)
                 time_reference = time_reference_node.read()
                 now = datetime.now()
-                save_dict = {}
+                save_dict = {'time_reference': time_reference}
                 for node in monitored_nodes:
                     value = node.read()
                     rate = node.convert(value=value, reference=time_reference, parameter="conversion",)
@@ -86,7 +86,7 @@ class wishlist_robot(object):
                 if save:
                     save_df = pd.DataFrame(save_dict, index=[now])
                     save_df_list.append(save_df)
-                    if not i % 120:
+                    if not i % 100:
                         save_dfs = pd.concat(save_df_list)
                         now_str = f'{now}'.replace(' ','_')
                         filename = f'{base_path}/accumulators_data_{now_str}.pickle'
@@ -104,6 +104,9 @@ class wishlist_robot(object):
 
 if __name__ == '__main__':
     robot = wishlist_robot(yaml_file='../firmware/l1calogfex_backannotated.yaml', log_level=logging.INFO)
+    nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf))
+    for node in nodes:
+        robot.logger.info(f'{node.path_name}: 0x{node.read():x}')
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
