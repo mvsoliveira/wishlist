@@ -3,10 +3,11 @@ import pandas as pd
 pd.options.plotting.backend = "plotly"
 from multiprocessing import Pool
 from functools import partial
-from IS2Pandas import IS2Pandas
 import re
 from pathlib import Path
 import glob
+import logging
+logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
 # Function outside the class to allow multithreading
@@ -29,9 +30,18 @@ def generate_plot(col, run, larc, df, vec_index0_regex, vec_indexany_regex, plot
 
 
 
-class Pandas2Plot(IS2Pandas):
-    def __init__(self,plot_threads,plot_vector_items,**kwargs):
-        super().__init__(**kwargs)
+class Pandas2Plot(object):
+    def __init__(self,
+                 plot_threads,
+                 plot_vector_items,
+                 partition='ATLAS',
+                 larc='LArC_EMBA_1',
+                 start='2022-03-08 16:30:00',
+                 stop='2022-03-08 16:40:00',
+                 run='current',
+                 load_pickle='',
+                 save_pickle='is2pandas.pickle',
+                 **kwargs):
         self.plot_threads = plot_threads
         self.plot_vector_items = plot_vector_items
         self.vec_index0_regex = re.compile(r"(?P<base>[\.\w]+)(\()(?P<size>\d+)(\))(\(0\))")
@@ -40,6 +50,23 @@ class Pandas2Plot(IS2Pandas):
         self.link__vector_item_template = '<a href = "<VARIABLE>.html" target = "main"><VARIABLE></a>\n'
         self.link_vector_template = '<button onclick="showhide(\'<VARIABLE>\')" id=<VARIABLE>_b>+</button><br>\n<p hidden id="<VARIABLE>">\n<LINKS_VECTOR_ITEMS></p>'
         self.reading_template('../templates/links_template')
+        self.lgr = logging.getLogger(self.__class__.__name__)
+        self.lgr.setLevel(logging.DEBUG)
+        # Internals
+        self.partition = partition
+        self.larc = larc
+        self.run = run
+        self.start = start
+        self.stop = stop
+        self.load_pickle = load_pickle
+        self.save_pickle = save_pickle
+        Path(f'../www/{self.run}/{self.larc}/').mkdir(parents=True, exist_ok=True)
+
+    def wanted_variable(self, variable):
+        for regex in self.wanted_variable_regexes_compiled:
+            if regex.search(variable):
+                return True
+        return False
 
     def action(self):
         Path(f'../www').mkdir(parents=True, exist_ok=True)
