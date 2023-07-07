@@ -16,7 +16,8 @@ def generate_plot(col, run, larc, df, vec_index0_regex, vec_indexany_regex, plot
         fig = df[col].plot(template="plotly_white",
                            # title=f'{larc} - {run}'
                            labels=dict(index="Time", value=name,variable='Vector items'))
-        fig.update_layout(showlegend=showlegend)
+        # hovermode='x' is used to ensure good browsing performance with large datasets
+        fig.update_layout(showlegend=showlegend, hovermode="x")
         fig.write_html(f'../www/{run}/{larc}/{name}.html', include_plotlyjs='directory')
 
     if 'int' or 'float' in df[col].dtypes.name:
@@ -71,7 +72,7 @@ class Pandas2Plot(object):
     def action(self):
         Path(f'../www').mkdir(parents=True, exist_ok=True)
         Path(f'../pickle').mkdir(parents=True, exist_ok=True)
-        os.system(f'rsync -zvhL zynq-stf.cern.ch:/software/tmp/* ../pickle/')
+        self.get_data_from_server()
         df_list = []
         for file in glob.glob('../pickle/*.pickle'):
             df_list.append(pd.read_pickle(file))
@@ -79,6 +80,9 @@ class Pandas2Plot(object):
         self.df.sort_index(inplace=True)
         self.generating_plots()
         self.generating_html()
+
+    def get_data_from_server(self):
+        os.system(f'rsync -zvhL zynq-stf.cern.ch:/software/tmp/* ../pickle/')
 
     def generating_plots(self):
         self.lgr.info(f'Generating plots for {self.larc}.')

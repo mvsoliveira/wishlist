@@ -10,6 +10,7 @@ import time
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+from pytz import timezone
 
 
 class wishlist_robot(object):
@@ -63,41 +64,44 @@ class wishlist_robot(object):
         while True:
             try:
                 # Waiting for reference to reach desired time period
-                while timer_node.read() < 1:
+                while timer_node.read() < 50e6:
                     pass
                 clear_load_node.write(1)
                 clear_load_node.write(0)
                 time_reference = time_reference_node.read()
-                now = datetime.now()
-                save_dict = {'time_reference': time_reference}
-                for node in monitored_nodes:
-                    value = node.read()
-                    rate = node.convert(value=value, reference=time_reference, parameter="conversion",)
-                    if display:
-                        representation = node.convert(value=value, rate=rate, parameter="representation")
-                        accumulators_df.loc[
-                            node.name, 'Value'] = f'{representation}'
-                    if save:
-                        save_dict[node.name] = rate
+                if time_reference == (1 << time_reference_node.width) - 1:
+                    self.logger.warning(f'Online monitoring iteration {i} has been discarded because time reference value is saturated.')
+                else:
+                    now = datetime.now(timezone('Europe/Paris'))
+                    save_dict = {'time_reference': time_reference}
+                    for node in monitored_nodes:
+                        value = node.read()
+                        rate = node.convert(value=value, reference=time_reference, parameter="conversion",)
+                        if display:
+                            representation = node.convert(value=value, rate=rate, parameter="representation")
+                            accumulators_df.loc[
+                                node.name, 'Value'] = f'{representation}'
+                        if save:
+                            save_dict[node.name] = rate
 
-                if display:
-                    # Generating string before clearing the screen to avoid flickering
-                    df_str = accumulators_df.to_string(col_space=30)
-                if save:
-                    save_df = pd.DataFrame(save_dict, index=[now])
-                    save_df_list.append(save_df)
-                    if not i % 100:
-                        save_dfs = pd.concat(save_df_list)
-                        now_str = f'{now}'.replace(' ','_')
-                        filename = f'{base_path}/accumulators_data_{now_str}.pickle'
-                        save_dfs.to_pickle(filename)
-                        self.logger.info(f'Iteration {i} - saved file {filename} ')
-                        save_df_list = []
+                    if display:
+                        # Generating string before clearing the screen to avoid flickering
+                        df_str = accumulators_df.to_string(col_space=30)
+                    if save:
+                        save_df = pd.DataFrame(save_dict, index=[now])
+                        save_df_list.append(save_df)
+                        if not i % 120:
+                            save_dfs = pd.concat(save_df_list)
+                            now_str = f'{now}'.replace(' ','_')
+                            filename = f'{base_path}/accumulators_data_{now_str}.pickle'
+                            save_dfs.to_pickle(filename)
+                            self.logger.info(f'Iteration {i} - saved file {filename} ')
+                            save_df_list = []
+                    if display:
+                        os.system('clear')
+                        self.logger.info(f'Iteration {i} - {now} - refresh time: {time_reference * 10e-9} seconds ')
+                        print(df_str)
                 i += 1
-                if display:
-                    os.system('clear')
-                    self.logger.info(f'Iteration {i} - {now} - refresh time: {time_reference * 10e-9} seconds ')
-                    print(df_str)
             except KeyboardInterrupt:
                 sys.exit()
 
@@ -111,8 +115,8 @@ if __name__ == '__main__':
     robot.stress_test(nodes, N=10)
     robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
     monitored_nodes = list(
-        preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and (
-                    'accumulator' in node.description or 'INIT_STAT' in node.name)))
+        preorder_iter(robot.tree, filter_condition=lambda node: (node.is_leaf and node.permission == 'r') and (
+                    '/monitoring/' in node.path_name or 'INIT_STAT' in node.name)))
     clear_load_node = find_name(robot.tree, 'clear_load')
     time_reference_node = find_name(robot.tree, 'ps_sys_clk')
     timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')

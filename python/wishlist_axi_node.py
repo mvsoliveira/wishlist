@@ -60,7 +60,11 @@ class wishlist_axi_node(Node):
         return True
 
     def convert(self, value, parameter, **kwargs):
-        if hasattr(self,parameter):
-            return eval(getattr(self, parameter))
+        if hasattr(self, parameter):
+            if value == (1 << self.width) -1:
+                self.logger.warning('Attempted conversion returned -1 because read value is saturated (reached maximum value due overflow protection)')
+                return -1
+            else:
+                return eval(getattr(self, parameter))
         else:
             return value

@@ -52,7 +52,8 @@ def node_to_register(value, address, mask, read_values, bus_width, logger):
         # the most significant word first, i.e. at the first address offset of the node
     return write_values[::-1]
 
-
+def lsb(n):
+    return (n & -n).bit_length() - 1
 def word_mask(width):
     return (1 << width) - 1
 
