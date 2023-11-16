@@ -32,7 +32,7 @@ begin
     {%- if register.permission == 'r' %}
 {{ get_node_names(register, direction='status')['full_name'] }} <= {{ get_node_names(register, direction='status')['zeroes'] }};
     {%- else %}
--- => {{ get_node_names(register, direction='control')['full_name'] }};
+-- <= {{ get_node_names(register, direction='control')['full_name'] }};
     {%- endif %}
 {%- endfor %}
 

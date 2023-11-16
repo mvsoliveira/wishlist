@@ -35,6 +35,11 @@ children:
 - name: GBT_CTRL
   description: GBT control register.
   children:
+  - name: PROC_SC_CMD
+    address: 0xA0010010
+    description : proc_sc_cmd port of ztop_timing_ctrl
+    mask: 0x00000001
+    permission: rw
   - name: SYNC
     address: 0xA0010010
     description: Synchronization signal. 0=start sync, 1=release sync for data taking.
