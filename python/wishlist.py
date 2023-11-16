@@ -12,6 +12,7 @@ from report import formatting
 import xml.dom.minidom
 import pathlib
 import sys
+import random
 
 
 def attr_in_family(node, attr, value):
@@ -41,9 +42,13 @@ def get_node_names(node,direction):
         if node.width > 1:
             names['vector'] = f'std_logic_vector({node.width-1} downto 0)'
             names['zeroes'] = "(others => '0')"
+            if hasattr(node,'stimulus'):
+                names['stimulus'] = f'"{{value:0{node.width}b}}"'.format(value=node.stimulus)
         else:
             names['vector'] = f'std_logic'
             names['zeroes'] = "'0'"
+            if hasattr(node, 'stimulus'):
+                names['stimulus'] = f"'{node.stimulus}'"
         names['type_name'] = f'{name}_subtype'
         # full name for address decoder only
         names['full_name'] = node.path_name.replace(f'/{node.root.name}', f'{node.root.name}_{direction}').replace('/', '.').lower()
@@ -78,13 +83,16 @@ class wishlist(memory):
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
         self.flattening()
-        print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description'])
+        # Assigning stimulus for instantiation example and hardware validation
+        self.generating_stimulus()
+        #print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description', 'stimulus'])
         # Allocation
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
             self.allocate(node)
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
+        print_tree(self.tree,all_attrs=True)
         # Generating software description file
         self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
@@ -92,6 +100,7 @@ class wishlist(memory):
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
         self.generate_vhdl_address_decoder_file()
         self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
+        self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
         # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
@@ -132,25 +141,30 @@ class wishlist(memory):
             for node in preorder_iter(self.tree):
                 if hasattr(node,'length'):
                     for i in range(node.length):
+                        attributes = dict(node.describe(exclude_attributes=["name", 'address', 'parent', 'children', 'description', 'length'],exclude_prefix="_"))
                         children = deepcopy(node.children)
-                        attributes = {}
                         if hasattr(node,'description'):
                             attributes['description'] = f'Instance {i}; {node.description}'
                         if hasattr(node, 'address'):
                             if i == 0:
                                 attributes['address'] = node.address
-                        if hasattr(node, 'mask'):
-                            attributes['mask'] = node.mask
-                        if hasattr(node, 'width'):
-                            attributes['width'] = node.width
-                        if hasattr(node, 'permission'):
-                            attributes['permission'] = node.permission
+                        # if hasattr(node, 'mask'):
+                        #     attributes['mask'] = node.mask
+                        # if hasattr(node, 'width'):
+                        #     attributes['width'] = node.width
+                        # if hasattr(node, 'permission'):
+                        #     attributes['permission'] = node.permission
                         a = Node(f'{node.name}({i})', parent=node.parent, children=list(children), **attributes)
                     shift_nodes(self.tree, [node.path_name[1:]], [None])
                     finished = False
                     break
                     #print_tree(self.tree, attr_list=['address', 'mask', 'width', 'length', 'permission'])
 
+    def generating_stimulus(self):
+        # Generating random number using path_name as seed, so the number is unchanged in different runs
+        for node in self.register_nodes_iter():
+            random.seed(node.path_name)
+            node.stimulus = random.randint(0, 2 ** node.width - 1)
     def register_nodes_iter(self):
         return preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf)
 
@@ -274,8 +288,7 @@ class wishlist(memory):
         # Masking sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
             if node.width > 32:
-                print(f'UHAL XML file can NOT be generated because the node {node.path_name} features a width value higher than 32.')
-                return -1
+                print(f'Omitting node {node.path_name} in XML output because uHAL does not support width higher than 32.')
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address
@@ -318,3 +331,5 @@ def xml_beautify(content):
 
 if __name__ == '__main__':
     obj = wishlist(sys.argv[1])
+    for path in ['firmware/l1calogfex_backannotated.yaml', 'firmware/l1calogfex_pkg.vhd', 'firmware/l1calogfex_address_decoder.vhd', 'firmware/l1calogfex_instantiation.vhd', 'examples/L1CaloGfex.yaml']:
+        os.system(f'scp {path} aiatlas-fw-03.cern.ch:git/register/zfpga/zfpga_top/source/')

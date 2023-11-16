@@ -15,7 +15,7 @@ def read_tree(logger):
         wishlist_dict = yaml.safe_load(stream)
     tree = nested_dict_to_tree(wishlist_dict)
     logger.info('Testing the following register tree:')
-    print_tree(tree, attr_list=['address', 'mask', 'width', 'length', 'permission', 'description'], style='ansi')
+    print_tree(tree, all_attrs=True, style='ansi')
     return tree
 
 
