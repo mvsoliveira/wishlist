@@ -21,9 +21,13 @@ async def register_test(dut, logger, tree, shufle_order=1):
     await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
 
     print('writing date')
-    test_data = bytearray([x % 256 for x in range(10)])
-    await axi_master.write(0x04, test_data)
-    await axi_master.write(0x70000100, test_data)
+    for i in range(10):
+        integer = 1 << i
+        offset = i << 2
+        bytes = int(integer).to_bytes(4,byteorder='little')
+        reconstructed = int.from_bytes(bytes,byteorder='little',signed=False)
+        data = await axi_master.write(offset, bytes)
+        print(f'Written integer {integer} to offset 0x{offset:08x}. Resulting bytearra is {bytes} and respective reconstructed integer is {reconstructed}')
 
     for i in range(10):
         await RisingEdge(dut.S_AXI_ACLK)

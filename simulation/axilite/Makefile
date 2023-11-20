@@ -17,7 +17,7 @@ VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_axilite.vhd
 
 export BACKANNOTATED_YAML := $(PWD)/../../firmware/$(DESIGN)_backannotated.yaml
 
-TOPLEVEL := example_axilite
-MODULE   := axi_simulation
+TOPLEVEL := $(DESIGN)_axilite
+MODULE   := axilite_simulation
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
