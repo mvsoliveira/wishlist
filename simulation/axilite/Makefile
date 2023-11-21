@@ -1,5 +1,5 @@
 SIM ?= questa
-GUI ?= 1
+GUI ?= 0
 WAVES ?= 1
 TOPLEVEL_LANG ?= vhdl
 DESIGN ?= example

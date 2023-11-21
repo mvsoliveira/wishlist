@@ -18,9 +18,16 @@ def read_tree(logger):
     print_tree(tree, all_attrs=True, style='ansi')
     return tree
 
+async def read(dut,address, mask, cycle):
+    return await cycle(dut, address, mask, 1, None)
 
-async def read_node(dut, node, bus_width, read, logger):
-    read_values = await read(dut, node.address, node.mask)
+
+async def write(dut,address, mask, write_values, cycle):
+    return await cycle(dut,address, mask, 0, write_values)
+
+
+async def read_node(dut, node, bus_width, logger, cycle):
+    read_values = await read(dut, node.address, node.mask, cycle)
     value = 0
     node_lsb = 0
     logger.debug(f'Reading values from {node.path_name}, read values: {read_values}')
@@ -36,11 +43,11 @@ async def read_node(dut, node, bus_width, read, logger):
 def word_mask(width):
     return (1 << width)-1
 
-async def write_node(dut, node, value, bus_width, write, read, logger):
+async def write_node(dut, node, value, bus_width, logger, cycle):
     # Computing the bus mask
     bus_mask = word_mask(bus_width)
     # Reading all the registers associated with the node with the bus mask
-    read_values = await read(dut, node.address, [bus_mask]*len(node.address))
+    read_values = await read(dut, node.address, [bus_mask]*len(node.address), cycle)
     # Node LSB (can be higher than bus width)
     node_lsb = 0
     # Empty array of values to be written
@@ -70,5 +77,5 @@ async def write_node(dut, node, value, bus_width, write, read, logger):
         node_lsb += word_width # incrementing LSB by word width
     # Writing combined data back
     logger.debug(f'Writing the following values {write_values[::-1]}')
-    ack = await write(dut, node.address, [bus_mask]*len(node.address), write_values[::-1])
+    ack = await write(dut, node.address, [bus_mask]*len(node.address), write_values[::-1], cycle)
     return True

@@ -38,14 +38,6 @@ async def cycle(dut, address, mask, read_mode, write_values):
         return True
 
 
-async def read(dut,address, mask):
-    return await cycle(dut, address, mask, 1, None)
-
-
-async def write(dut,address, mask, write_values):
-    return await cycle(dut,address, mask, 0, write_values)
-
-
 @cocotb.coroutine
 async def register_test(dut, logger, tree, shufle_order=1):
     """Testing registers"""
@@ -73,13 +65,13 @@ async def register_test(dut, logger, tree, shufle_order=1):
             signal = attrgetter(f"{path[1]}_status_i.{'.'.join(path[2:])}")(dut)
             signal.value = node.stimulus
         else:
-            ack = await write_node(dut,node,node.stimulus, bus_width, write, read, logger)
+            ack = await write_node(dut,node,node.stimulus, bus_width, logger, cycle)
 
     # Checking stimulus
     if shufle_order: random.shuffle(nodes)
     for node in nodes:
         logger.info(f'Checking node: {node.path_name}, permission: {node.permission}')
-        node_value = await read_node(dut, node, bus_width, read, logger)
+        node_value = await read_node(dut, node, bus_width, logger, cycle)
         logger.debug(f'Stimulus = {node.stimulus}, actual= {node_value}')
         assert node.stimulus == node_value, f'Actual data for Node {node.path_name} {node_value} is different than applied stimulus {node.stimulus}'
 

@@ -32,7 +32,7 @@ example_uhal_simulation:
   tags:
     - uhal
 
-example_cocotb_simulation:
+example_addr_decoder_simulation:
   stage: simulation
   script:
     - source /eda/set_siemens.sh
@@ -42,12 +42,32 @@ example_cocotb_simulation:
   tags:
     - cocotb
 
-l1calogfex_cocotb_simulation:
+l1calogfex_addr_decoder_simulation:
   stage: simulation
   script:
     - source /eda/set_siemens.sh
     - conda activate wishlist
     - cd simulation/address_decoder
+    - GUI=0 DESIGN=l1calogfex make
+  tags:
+    - cocotb
+
+example_axilite_simulation:
+  stage: simulation
+  script:
+    - source /eda/set_siemens.sh
+    - conda activate wishlist
+    - cd simulation/axilite
+    - GUI=0 DESIGN=example make
+  tags:
+    - cocotb
+
+l1calogfex_axilite_simulation:
+  stage: simulation
+  script:
+    - source /eda/set_siemens.sh
+    - conda activate wishlist
+    - cd simulation/axilite
     - GUI=0 DESIGN=l1calogfex make
   tags:
     - cocotb
