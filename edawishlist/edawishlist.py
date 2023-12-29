@@ -330,7 +330,11 @@ def xml_beautify(content):
     return os.linesep.join([s for s in dom_string.splitlines() if s.strip()])
 
 
-if __name__ == '__main__':
+def main():
     obj = wishlist(sys.argv[1])
+
+
+if __name__ == '__main__':
+    main()
     #for path in ['firmware/l1calogfex_backannotated.yaml', 'firmware/l1calogfex_pkg.vhd', 'firmware/l1calogfex_address_decoder.vhd', 'firmware/l1calogfex_instantiation.vhd', 'examples/L1CaloGfex.yaml']:
         #os.system(f'scp {path} aiatlas-fw-03.cern.ch:git/register/zfpga/zfpga_top/source/')

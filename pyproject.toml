@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edawishlist"
-version = "0.0.2"
+version = "0.0.8"
 authors = [
   { name="Marcos Oliveira", email="marcos.oliveira@cern.ch" },
 ]
@@ -18,11 +18,14 @@ classifiers = [
 ]
 dependencies = ['pandas','bigtree','pyyaml','jinja2']
 
+[project.scripts]
+wishlist = "edawishlist.edawishlist:main"
+
 [project.urls]
 Homepage = "https://gitlab.cern.ch/msilvaol/wishlist"
 Issues = "https://gitlab.cern.ch/msilvaol/wishlist/-/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["wishlist/"]
+packages = ["edawishlist/"]
 
 
