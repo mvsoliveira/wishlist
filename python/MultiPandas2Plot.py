@@ -87,7 +87,7 @@ if __name__ == '__main__':
                                         partition='ATLAS',
                                         start=start,
                                         stop=stop,
-                                        run='Friday7th-devel',
+                                        run='P1_December13th',
                                         load_pickle='',
                                         save_pickle='',
                                         wanted_variable_regexes=wanted_variable_regexes)

@@ -13,62 +13,22 @@ children:
   mask: 0xFFFFFFFF
   permission: rw
 - name: N_BCRD_CTRL
+  address: 0xA001000C
   description: Number of BCs read out on specific links, must write before enabling
     data flow.
-  children:
-  - name: GLBL_LNKS
-    address: 0xA001000C
-    description: '[11:0] number of BCs for JET links'
-    mask: 0x0003FE00
-    permission: rw
-  - name: JET_LNKS
-    address: 0xA001000C
-    description: '[23:12] number of BCs for MET links'
-    mask: 0x000001FF
-    permission: rw
-  - name: TWR_LNKS
-    address: 0xA001000C
-    description: '[31:23] reserved. number of BCs for input links (not implemented
-      in fw)'
-    mask: 0xFFFC0000
-    permission: rw
+  mask: 0xFFFFFFFF
+  permission: rw
 - name: GBT_CTRL
+  address: 0xA0010010
   description: GBT control register.
-  children:
-  - name: PROC_SC_CMD
-    address: 0xA0010010
-    description: proc_sc_cmd port of ztop_timing_ctrl
-    mask: 0x00000001
-    permission: rw
-  - name: SYNC
-    address: 0xA0010010
-    description: Synchronization signal. 0=start sync, 1=release sync for data taking.
-    mask: 0x00000002
-    permission: rw
-  - name: RST
-    address: 0xA0010010
-    description: Software generated system reset bit.
-    mask: 0x00000004
-    permission: rw
+  mask: 0xFFFFFFFF
+  permission: rw
 - name: ECR_CTRL
+  address: 0xA0010014
   description: '[29] = ECR counter update, [28] = ECR counter clear, [7:0] = ECR counter
     value*1e8'
-  children:
-  - name: VALUE
-    address: 0xA0010014
-    description: ECR counter value*1e8
-    mask: 0x000000FF
-    permission: rw
-  - name: CLEAR
-    address: 0xA0010014
-    description: ECR counter clear.
-    mask: 0x10000000
-    permission: rw
-  - name: UPDATE
-    address: 0xA0010014
-    description: ECR counter update.
-    mask: 0x20000000
-    permission: rw
+  mask: 0xFFFFFFFF
+  permission: rw
 - name: DATE_TIME
   address: 0xA0010100
   description: Date and Time Register.

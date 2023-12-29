@@ -16,9 +16,6 @@
     <node id="CLEAR" mask="0x10000000" description="ECR counter clear."/>
     <node id="UPDATE" mask="0x20000000" description="ECR counter update."/>
   </node>
-  <node id="DATE_TIME" address="0xA0010100" permission="r" description="Date and Time Register."/>
-  <node id="GIT_HASH" address="0xA0010104" permission="r" description="Git hash register."/>
-  <node id="FW_VER_CODE" address="0xA0010108" permission="r" description="Firmware version of tagged releases"/>
   <node id="AIPB_TX_CTRL" address="0xA0010020" permission="rw" description="pFGPA A SCR transmit control register"/>
   <node id="AIPB_TX_DATA" address="0xA0010024" permission="rw" description="pFGPA A SCR transmit data register"/>
   <node id="BIPB_TX_CTRL" address="0xA0010028" permission="rw" description="pFGPA B SCR transmit control register"/>
@@ -31,6 +28,12 @@
   <node id="ZIPB_TX_CTRL" address="0xA0010044" permission="rw" description="Zynq Streaming SCR transmit control register"/>
   <node id="ZIPB_TX_DATA" address="0xA0010048" permission="rw" description="Zynq Streaming SCR transmit data register"/>
   <node id="ZIPB_RX_CTRL" address="0xA001004C" permission="rw" description="Zynq Streaming SCR receive control register"/>
+
+
+  <node id="DATE_TIME" address="0xA0010100" permission="r" description="Date and Time Register."/>
+  <node id="GIT_HASH" address="0xA0010104" permission="r" description="Git hash register."/>
+  <node id="FW_VER_CODE" address="0xA0010108" permission="r" description="Firmware version of tagged releases"/>
+
   <node id="AIPB_TX_STAT" address="0xA0010110" permission="r" description="pFGPA A SCR transmit status register"/>
   <node id="BIPB_TX_STAT" address="0xA0010114" permission="r" description="pFGPA B SCR transmit status register"/>
   <node id="CIPB_TX_STAT" address="0xA0010118" permission="r" description="pFGPA C SCR transmit status register"/>

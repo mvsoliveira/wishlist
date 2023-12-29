@@ -64,8 +64,8 @@ class wishlist_robot(object):
         while True:
             try:
                 # Waiting for reference to reach desired time period
-                while timer_node.read() < 50e6:
-                    pass
+                while timer_node.read() < 500e6:
+                    time.sleep(0.1)
                 clear_load_node.write(1)
                 clear_load_node.write(0)
                 time_reference = time_reference_node.read()
@@ -86,14 +86,15 @@ class wishlist_robot(object):
 
                     if display:
                         # Generating string before clearing the screen to avoid flickering
+                        #df_str = accumulators_df.loc[['clk' in i for i in accumulators_df.index],:].to_string(col_space=30)
                         df_str = accumulators_df.to_string(col_space=30)
                     if save:
                         save_df = pd.DataFrame(save_dict, index=[now])
                         save_df_list.append(save_df)
-                        if not i % 120:
+                        if not i % 20:
                             save_dfs = pd.concat(save_df_list)
                             now_str = f'{now}'.replace(' ','_')
-                            filename = f'{base_path}/accumulators_data_{now_str}.pickle'
+                            filename = f'{base_path}/online_monitoring_data_{now_str}.pickle'
                             save_dfs.to_pickle(filename)
                             self.logger.info(f'Iteration {i} - saved file {filename} ')
                             save_df_list = []

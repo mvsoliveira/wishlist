@@ -82,10 +82,10 @@ class Pandas2Plot(object):
         self.generating_html()
 
     def get_data_from_server(self):
-        os.system(f'rsync -zvhL zynq-stf.cern.ch:/software/tmp/* ../pickle/')
+        os.system(f'rsync --remove-source-files -zvhL zynq-p1.cern.ch:/software/tmp/* ../pickle/')
 
     def generating_plots(self):
-        self.lgr.info(f'Generating plots for {self.larc}.')
+        self.lgr.info(f'Generating plots for {self.larc}')
         gen_plot = partial(generate_plot, run=self.run, larc=self.larc, df=self.df, vec_index0_regex=self.vec_index0_regex,vec_indexany_regex=self.vec_indexany_regex,plot_vector_items=self.plot_vector_items)
         if self.plot_threads == 1:
             for col in self.df.columns:
