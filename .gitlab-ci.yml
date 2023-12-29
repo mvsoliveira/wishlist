@@ -6,7 +6,7 @@ wishlist_compilation:
   stage: compilation
   script:
     - conda activate wishlist
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - python3 edawishlist/wishlist.py examples/L1CaloGfex.yaml
     - python3 edawishlist/wishlist.py examples/example.yaml
   tags:
@@ -21,7 +21,7 @@ l1calogfex_uhal_simulation:
   stage: simulation
   script:
     - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - python3 edawishlist/uhal_dummy_connection.py software/l1calogfex_uhal.xml
   tags:
     - uhal
@@ -30,7 +30,7 @@ example_uhal_simulation:
   stage: simulation
   script:
     - source /cvmfs/atlas.cern.ch/repo/sw/tdaq/tdaq/tdaq-10-01-00/installed/setup.sh
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - python3 edawishlist/uhal_dummy_connection.py software/example_uhal.xml
   tags:
     - uhal
@@ -40,7 +40,7 @@ example_addr_decoder_simulation:
   script:
     - source /eda/set_siemens.sh
     - conda activate wishlist
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - cd simulation/address_decoder
     - GUI=0 DESIGN=example make
   tags:
@@ -51,7 +51,7 @@ l1calogfex_addr_decoder_simulation:
   script:
     - source /eda/set_siemens.sh
     - conda activate wishlist
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - cd simulation/address_decoder
     - GUI=0 DESIGN=l1calogfex make
   tags:
@@ -62,7 +62,7 @@ example_axilite_simulation:
   script:
     - source /eda/set_siemens.sh
     - conda activate wishlist
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - cd simulation/axilite
     - GUI=0 DESIGN=example make
   tags:
@@ -73,7 +73,7 @@ l1calogfex_axilite_simulation:
   script:
     - source /eda/set_siemens.sh
     - conda activate wishlist
-    - export PYTHONPATH=./:$PYTHONPATH
+    - export PYTHONPATH=$PWD:$PYTHONPATH
     - cd simulation/axilite
     - GUI=0 DESIGN=l1calogfex make
   tags:
