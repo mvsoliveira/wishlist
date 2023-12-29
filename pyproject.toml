@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "edawishlist"
+version = "0.0.2"
+authors = [
+  { name="Marcos Oliveira", email="marcos.oliveira@cern.ch" },
+]
+description = "A package that interfaces software to firmware and vice versa following a list of wishes"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ['pandas','bigtree','pyyaml','jinja2']
+
+[project.urls]
+Homepage = "https://gitlab.cern.ch/msilvaol/wishlist"
+Issues = "https://gitlab.cern.ch/msilvaol/wishlist/-/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["wishlist/"]
+
+

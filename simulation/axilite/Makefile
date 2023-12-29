@@ -8,7 +8,7 @@ export COCOTB_RESOLVE_X=RANDOM
 
 PWD=$(shell pwd)
 
-export PYTHONPATH := $(PWD)/../../wishlist:$(PYTHONPATH)
+export PYTHONPATH := $(PWD)/../../edawishlist:$(PYTHONPATH)
 RTL_LIBRARY = axi_lite_ipif_v3_0_4
 VHDL_SOURCES = axi_lite_ipif_v3_0_vh_rfs.vhd
 VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_pkg.vhd
