@@ -7,7 +7,7 @@ export COCOTB_RESOLVE_X=RANDOM
 
 PWD=$(shell pwd)
 
-export PYTHONPATH := $(PWD)/../../python:$(PYTHONPATH)
+export PYTHONPATH := $(PWD)/../../wishlist:$(PYTHONPATH)
 
 VHDL_SOURCES = $(PWD)/../../firmware/$(DESIGN)_pkg.vhd
 VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_address_decoder.vhd
