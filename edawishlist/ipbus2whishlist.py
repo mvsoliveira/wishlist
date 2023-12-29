@@ -3,7 +3,7 @@ import xmltodict
 import yaml
 from bigtree import nested_dict_to_tree, print_tree, preorder_iter, shift_nodes, tree_to_nested_dict
 from memory import str2int
-from edawishlist import HexInt, representer, xml_beautify
+from edawishlist.wishlist import HexInt, representer, xml_beautify
 
 default_permission = 'rw'
 default_width = 32

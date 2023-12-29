@@ -1,7 +1,7 @@
 import os
 from itertools import cycle
 import pandas as pd
-from memory import inclusive_range
+from edawishlist.memory import inclusive_range
 
 def index_string_difference(s1,s2):
     # s1 should be the smaller string

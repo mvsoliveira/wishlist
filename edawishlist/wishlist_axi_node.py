@@ -1,5 +1,5 @@
 # read_words, write_words, and mapper methods are based on code from Emily and Greg
-from utils import registers_to_node, node_to_register, get_logger, word_mask
+from edawishlist.utils import registers_to_node, node_to_register, get_logger, word_mask
 from bigtree import Node
 import mmap
 import logging
