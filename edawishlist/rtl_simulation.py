@@ -8,7 +8,7 @@ import random
 from operator import attrgetter
 import cocotb
 import logging
-from node import read_tree, read_node, write_node
+from edawishlist.node import read_tree, read_node, write_node
 
 
 async def cycle(dut, address, mask, read_mode, write_values):

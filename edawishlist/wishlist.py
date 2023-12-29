@@ -4,11 +4,11 @@ import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
 import numpy as np
-from memory import memory, get_register_bits_lists
+from edawishlist.memory import memory, get_register_bits_lists
 from copy import deepcopy
 import re
 import os
-from report import formatting
+from edawishlist.report import formatting
 import xml.dom.minidom
 import pathlib
 import sys

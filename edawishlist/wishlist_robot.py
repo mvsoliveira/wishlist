@@ -1,7 +1,7 @@
 import os
 from bigtree import preorder_iter, find_name
-from wishlist_axi_node import wishlist_axi_node
-from utils import get_logger, log_tree, read_tree
+from edawishlist.wishlist_axi_node import wishlist_axi_node
+from edawishlist.utils import get_logger, log_tree, read_tree
 import logging
 import random
 import socket
