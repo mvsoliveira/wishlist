@@ -6,8 +6,8 @@ wishlist_compilation:
   stage: compilation
   script:
     - conda activate wishlist
-    - wishlist wishlist/wishlist.py examples/L1CaloGfex.yaml
-    - wishlist wishlist/wishlist.py examples/example.yaml
+    - python3 wishlist/wishlist.py examples/L1CaloGfex.yaml
+    - python3 wishlist/wishlist.py examples/example.yaml
   tags:
     - wishlist
     - cocotb
