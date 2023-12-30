@@ -72,10 +72,10 @@ class wishlist(memory):
     def __init__(self, wishlist_file):
         self.tree = None
         self.wishlist_file = wishlist_file
-        pathlib.Path("firmware").mkdir(parents=True, exist_ok=True)
-        pathlib.Path("software").mkdir(parents=True, exist_ok=True)
         self.read_input_file()
         self.create_tree()
+        pathlib.Path(self.wishlist_dict['firmware_path']).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)         
         self.computing_width()
         self.set_jinja_environment()
         self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')

@@ -34,15 +34,7 @@ async def cycle(axilite_master, address, mask, read_mode, write_values):
 
 
 @cocotb.coroutine
-async def register_test(dut, logger, tree, shufle_order=1):
-    """Testing registers"""
-    # Configuring clock
-    cocotb.start_soon(Clock(dut.S_AXI_ACLK, 2, units="ns").start())
-    axilite_master = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.S_AXI_ACLK, dut.S_AXI_ARESETN,
-                                   reset_active_level=False)
-    bus_width = len(dut.Bus2IP_Data)
-    await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
-
+async def axlite_test(dut,axilite_master,bus_width,logger,tree,shufle_order):
     # register transfers
     # Extracting tree of nodes
     nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
@@ -63,6 +55,22 @@ async def register_test(dut, logger, tree, shufle_order=1):
         node_value = await read_node(axilite_master, node, bus_width, logger, cycle)
         logger.debug(f'Stimulus = {node.stimulus}, actual= {node_value}')
         assert node.stimulus == node_value, f'Actual data for Node {node.path_name} {node_value} is different than applied stimulus {node.stimulus}'
+
+
+
+@cocotb.coroutine
+async def register_test(dut, logger, tree, shufle_order=1):
+    """Testing registers"""
+    # Configuring clock
+    cocotb.start_soon(Clock(dut.S_AXI_ACLK, 2, units="ns").start())
+    axilite_master = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.S_AXI_ACLK, dut.S_AXI_ARESETN,
+                                   reset_active_level=False)
+    bus_width = len(dut.Bus2IP_Data)
+    await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
+    # axlite tester
+    await axlite_test(dut,axilite_master,bus_width,logger,tree,shufle_order)
+
+    
 
 
 async def cycle_reset(clk, rst):
