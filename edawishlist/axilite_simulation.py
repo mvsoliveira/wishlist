@@ -34,10 +34,7 @@ async def cycle(axilite_master, address, mask, read_mode, write_values):
 
 
 @cocotb.coroutine
-async def axlite_test(dut,axilite_master,bus_width,logger,tree,shufle_order):
-    # register transfers
-    # Extracting tree of nodes
-    nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
+async def axlite_test(dut,axilite_master,bus_width,logger,nodes,shufle_order):
 
     # Writing stimullus
     if shufle_order: random.shuffle(nodes)
@@ -67,8 +64,10 @@ async def register_test(dut, logger, tree, shufle_order=1):
                                    reset_active_level=False)
     bus_width = len(dut.Bus2IP_Data)
     await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
+    # Extracting tree of nodes
+    nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
     # axlite tester
-    await axlite_test(dut,axilite_master,bus_width,logger,tree,shufle_order)
+    await axlite_test(dut,axilite_master,bus_width,logger,nodes,shufle_order)
 
     
 
