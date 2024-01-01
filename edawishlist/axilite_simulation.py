@@ -42,9 +42,9 @@ async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
     # Writing stimullus
     if shufle_order: random.shuffle(nodes)
     for node in nodes:
-        logger.info(f'Writing stimulus for {node.path_name}')
         path = node.path_name.lower().split('/')
         if node.permission == 'rw':
+            logger.info(f'Writing stimulus for {node.path_name}')
             node.stimulus = random.randint(0, 2 ** node.width - 1)
             ack = await write_node(axi_master, node, node.stimulus, bus_width, logger, cycle)
 
