@@ -22,3 +22,9 @@ pip install cocotbext-axi
 conda activate wishlist
 ```
 
+## Building and uploading to pip
+
+```
+python3 -m build  
+python3 -m twine upload dist/* 
+```

@@ -12,7 +12,7 @@ from cocotbext.axi import AxiBus, AxiLiteBus, AxiMaster, AxiLiteMaster, AxiLiteS
 from edawishlist.rtl_simulation import read_tree, write_node, read_node
 
 
-async def cycle(axilite_master, address, mask, read_mode, write_values):
+async def cycle(axi_master, address, mask, read_mode, write_values):
     read_values = []
     # Iterating for one clock cycle more than the number of words in the node because address decoder outputs is registered
     # Also delaying mask for one iteration because the mask is needed in the iteration i+1
@@ -20,9 +20,11 @@ async def cycle(axilite_master, address, mask, read_mode, write_values):
         # Write Stage of the clock cycle
         if not read_mode:
             bytes = int(write_values[i]).to_bytes(4, byteorder='little')
-            (address_resp, length, resp) = await axilite_master.write(addr, bytes)
+            # unpacking write response, user is returned only with AXI and not AXI lite
+            (address_resp, length, resp, *user) = await axi_master.write(addr, bytes)
         else:
-            (address_resp, data, resp) = await axilite_master.read(addr, 4)
+            # unpacking read response, user is returned only with AXI and not AXI lite
+            (address_resp, data, resp, *user) = await axi_master.read(addr, 4)
             integer = int.from_bytes(data, byteorder='little', signed=False)
             read_values.append(integer & msk)
         if resp != AxiResp.OKAY:
@@ -34,7 +36,7 @@ async def cycle(axilite_master, address, mask, read_mode, write_values):
 
 
 @cocotb.coroutine
-async def axlite_test(dut,axilite_master,bus_width,logger,nodes,shufle_order):
+async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
 
     # Writing stimullus
     if shufle_order: random.shuffle(nodes)
@@ -43,13 +45,13 @@ async def axlite_test(dut,axilite_master,bus_width,logger,nodes,shufle_order):
         path = node.path_name.lower().split('/')
         if node.permission == 'rw':
             node.stimulus = random.randint(0, 2 ** node.width - 1)
-            ack = await write_node(axilite_master, node, node.stimulus, bus_width, logger, cycle)
+            ack = await write_node(axi_master, node, node.stimulus, bus_width, logger, cycle)
 
     # Checking stimulus
     if shufle_order: random.shuffle(nodes)
     for node in nodes:
         logger.info(f'Checking node: {node.path_name}, permission: {node.permission}')
-        node_value = await read_node(axilite_master, node, bus_width, logger, cycle)
+        node_value = await read_node(axi_master, node, bus_width, logger, cycle)
         logger.debug(f'Stimulus = {node.stimulus}, actual= {node_value}')
         assert node.stimulus == node_value, f'Actual data for Node {node.path_name} {node_value} is different than applied stimulus {node.stimulus}'
 
@@ -62,6 +64,7 @@ async def register_test(dut, logger, tree, shufle_order=1):
     cocotb.start_soon(Clock(dut.S_AXI_ACLK, 2, units="ns").start())
     axilite_master = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.S_AXI_ACLK, dut.S_AXI_ARESETN,
                                    reset_active_level=False)
+
     bus_width = len(dut.Bus2IP_Data)
     await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
     # Extracting tree of nodes
