@@ -3,5 +3,6 @@ software
 .idea
 venv
 __pycache__*
+dist/*
 
 
