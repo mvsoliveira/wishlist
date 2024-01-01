@@ -97,13 +97,13 @@ async def cycle_reset(clk, rst):
     await RisingEdge(clk)
 
 
-# if __name__ == '__main__':
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-tree = read_tree(logger)
-# Factory of tests
-factory = TestFactory(register_test)
-factory.add_option("shufle_order", [False, True, True, True, True])
-factory.add_option("logger", [logger])
-factory.add_option("tree", [tree])
-factory.generate_tests()
+if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    tree = read_tree(logger)
+    # Factory of tests
+    factory = TestFactory(register_test)
+    factory.add_option("shufle_order", [False, True, True, True, True])
+    factory.add_option("logger", [logger])
+    factory.add_option("tree", [tree])
+    factory.generate_tests()
