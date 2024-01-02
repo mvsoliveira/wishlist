@@ -13,6 +13,7 @@ import xml.dom.minidom
 import pathlib
 import sys
 import random
+from string import Template
 
 
 def attr_in_family(node, attr, value):
@@ -75,7 +76,7 @@ class wishlist(memory):
         self.read_input_file()
         self.create_tree()
         pathlib.Path(self.wishlist_dict['firmware_path']).mkdir(parents=True, exist_ok=True)
-        pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)         
+        pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)
         self.computing_width()
         self.set_jinja_environment()
         self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')
@@ -116,7 +117,8 @@ class wishlist(memory):
     def read_input_file(self):
         with open(self.wishlist_file, "r") as stream:
             try:
-                self.wishlist_dict = yaml.safe_load(stream)
+                environ_parsed_string = Template(stream.read()).safe_substitute(os.environ)
+                self.wishlist_dict = yaml.safe_load(environ_parsed_string)
             except yaml.YAMLError:
                 logging.exception(f'Error while reading {self.wishlist_file}.')
             # Making sure address is read as HexInt
