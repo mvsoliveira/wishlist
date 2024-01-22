@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edawishlist"
-version = "0.0.13"
+version = "0.0.14"
 authors = [
   { name="Marcos Oliveira", email="marcos.oliveira@cern.ch" },
 ]
 description = "A package that interfaces software to firmware and vice versa following a list of wishes"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.7.6"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
