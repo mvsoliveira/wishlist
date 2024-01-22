@@ -1,0 +1,28 @@
+name: zfpga
+address: 0xA0010000
+address_increment: 4
+address_size: 65536
+address_width: 32
+description: Register address table for L1Calo gFEX zynq FPGA
+firmware_path: firmware
+software_path: software
+children:
+- name: infrastructure
+  description: Infrastructure registers
+  children:
+      - {name: test_r, width: 63, length: 6, permission: r, description: Read-only test node, clock: ps_mmcm_clk_100m}
+      - {name: test_rw, width: 33, length: 7, permission: rw, description: Write test node, clock: ps_mmcm_clk_100m}
+      - name: clocking
+        description: Clocking registers
+        children:
+            - {name: reset, width: 1, permission: rw, description: Reset the clocking logic, clock: ps_mmcm_clk_100m}
+            - {name: locked, width: 1, permission: r, description: Lock status of the clocking logic, clock: ps_mmcm_clk_100m}
+      - name: monitoring
+        description: Monitoring accumulators
+        children:
+            - {name: clear_load, width: 1, permission: rw, description: Clear and load the accumulators, clock: ps_mmcm_clk_100m}
+            - {name: ps_mmcm_locked, width: 1, permission: rw, description: Clear and load the accumulators, clock: ps_mmcm_clk_100m}            
+            - {name: ps_mmcm_clk_100m, width: 32, permission: r, description: Clock frequency monitoring using accumulator, clock: ps_mmcm_clk_100m, conversion: "value*1e8/(kwargs[\"reference\"])", representation: "f'{value} ({kwargs[\"rate\"]*1e-6:.6f} MHz)'"}
+            - {name: ps_mmcm_clk_no_shadow_100m, width: 32, permission: r, description: Clock frequency monitoring using accumulator, clock: ps_mmcm_clk_100m, conversion: "value*1e8/(kwargs[\"reference\"])", representation: "f'{value} ({kwargs[\"rate\"]*1e-6:.6f} MHz)'"}
+            - {name: ps_mmcm_clk_240m, width: 32, permission: r, description: Clock frequency monitoring using accumulator, clock: ps_mmcm_clk_240m, conversion: "value*1e8/(kwargs[\"reference\"])", representation: "f'{value} ({kwargs[\"rate\"]*1e-6:.6f} MHz)'"}
+
