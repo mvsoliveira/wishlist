@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "edawishlist"
-version = "0.0.14"
+version = "0.0.16"
 authors = [
   { name="Marcos Oliveira", email="marcos.oliveira@cern.ch" },
 ]
@@ -16,7 +16,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ['pandas','bigtree','pyyaml','jinja2']
+dependencies = ['pandas','bigtree','pyyaml']
+
+[project.optional-dependencies]
+full = ['jinja2']
+
 
 [project.scripts]
 wishlist = "edawishlist.wishlist:main"
