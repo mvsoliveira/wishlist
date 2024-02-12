@@ -38,7 +38,6 @@ async def cycle(axi_master, address, mask, read_mode, write_values):
 
 @cocotb.coroutine
 async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
-
     # Writing stimullus
     if shufle_order: random.shuffle(nodes)
     for node in nodes:
@@ -59,12 +58,14 @@ async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
 
 @cocotb.coroutine
 async def axi_initialization(axi_master, bus_width, logger, nodes):
-    logger.info("Initializing rw registers with zeroes, this is needed because the aurora serial stream output is unknown when unititialized registers values are propagated to the core. This causes soft errors to be detected which ultimately causes a calibration error in aurora during simulation. One can't address this situation in the testbench because the unresolved values are causing the issue inside of the DUT, i.e. the Aurora core. This is not need while running in the target because unknown values are propagated as zeroes or random values within the DUT.")
+    logger.info(
+        "Initializing rw registers with zeroes, this is needed because the aurora serial stream output is unknown when unititialized registers values are propagated to the core. This causes soft errors to be detected which ultimately causes a calibration error in aurora during simulation. One can't address this situation in the testbench because the unresolved values are causing the issue inside of the DUT, i.e. the Aurora core. This is not need while running in the target because unknown values are propagated as zeroes or random values within the DUT.")
     bus_mask = word_mask(bus_width)
-    for node in nodes:        
+    for node in nodes:
         if node.permission == 'rw':
             logger.info(f'Initializing node: {node.path_name}, permission: {node.permission}')
-            ack = await write(axi_master, node.address, [bus_mask]*len(node.address), [0]*len(node.address), cycle)
+            ack = await write(axi_master, node.address, [bus_mask] * len(node.address), [0] * len(node.address), cycle)
+
 
 @cocotb.coroutine
 async def register_test(dut, logger, tree, shufle_order=1):
@@ -80,9 +81,7 @@ async def register_test(dut, logger, tree, shufle_order=1):
     nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
     # axlite tester
     await axi_initialization(axilite_master, bus_width, logger, nodes)
-    await axlite_test(dut,axilite_master,bus_width,logger,nodes,shufle_order)
-
-    
+    await axlite_test(dut, axilite_master, bus_width, logger, nodes, shufle_order)
 
 
 async def cycle_reset(clk, rst):

@@ -14,19 +14,21 @@ from pytz import timezone
 
 
 class wishlist_robot(object):
-    def __init__(self, yaml_file=None, log_level=logging.INFO):
+    def __init__(self, yaml_file=None, log_level=logging.INFO,base_node=None):
         self.logger = get_logger('Wishlist Robot', log_level)
         if not yaml_file:
             yaml_file = os.getenv("BACKANNOTATED_YAML")
         self.logger.info(f'Starting robot in {socket.gethostname()} using the register tree shown below loaded from {yaml_file}')
-        self.tree = read_tree(yaml_file,wishlist_axi_node)
+        if not base_node:
+            base_node = wishlist_axi_node
+        self.tree = read_tree(yaml_file,base_node)
         log_tree(self.tree, self.logger)
 
     def stress_test(self, nodes=None, N=1000, test_only_rw=False):
         start_time = time.time()
         # Testing the entire tree if nodes is not defined
         if nodes is None:
-            nodes = self.tree
+            nodes = list(preorder_iter(self.tree, filter_condition=lambda node: node.is_leaf))
         # Making sure only leaves and rw registers are tested
         if test_only_rw:
             nodes = [n for n in nodes if (n.permission == 'rw' and n.is_leaf)]
@@ -110,25 +112,24 @@ class wishlist_robot(object):
 
 
 if __name__ == '__main__':
-    #robot = wishlist_robot(yaml_file='../firmware/zfpga_backannotated.yaml', log_level=logging.INFO)
-    robot = wishlist_robot(log_level=logging.INFO)
+    robot = wishlist_robot(yaml_file='../firmware/l1calogfex_backannotated.yaml', log_level=logging.INFO)
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf))
     for node in nodes:
         robot.logger.info(f'{node.path_name}: 0x{node.read():x}')
     nodes = list(preorder_iter(robot.tree, filter_condition=lambda node: node.is_leaf and 'test_' in node.name))
     robot.stress_test(nodes, N=10)
-    print()
-    # monitored_nodes = list(
-    #     preorder_iter(robot.tree, filter_condition=lambda node: (node.is_leaf and node.permission == 'r') and (
-    #                 '/monitoring/' in node.path_name or 'INIT_STAT' in node.name)))
-    # clear_load_node = find_name(robot.tree, 'clear_load')
-    # time_reference_node = find_name(robot.tree, 'ps_sys_clk')
-    # timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
-    # robot.launch_online_monitoring(monitored_nodes=monitored_nodes,
-    #                                clear_load_node=clear_load_node,
-    #                                time_reference_node=time_reference_node,
-    #                                timer_node=timer_node,
-    #                                display=False)
+    robot.logger.info(f"Init status {find_name(robot.tree,'INIT_STAT').read():08x}")
+    monitored_nodes = list(
+        preorder_iter(robot.tree, filter_condition=lambda node: (node.is_leaf and node.permission == 'r') and (
+                    '/monitoring/' in node.path_name or 'INIT_STAT' in node.name)))
+    clear_load_node = find_name(robot.tree, 'clear_load')
+    time_reference_node = find_name(robot.tree, 'ps_sys_clk')
+    timer_node = find_name(robot.tree, 'ps_sys_clk_no_shadow')
+    robot.launch_online_monitoring(monitored_nodes=monitored_nodes,
+                                   clear_load_node=clear_load_node,
+                                   time_reference_node=time_reference_node,
+                                   timer_node=timer_node,
+                                   display=False)
 
 
 
