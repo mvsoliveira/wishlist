@@ -4,6 +4,7 @@ from bigtree import Node
 import mmap
 import logging
 import sys
+from edawishlist.axi_driver import AXIDriver
 
 
 class wishlist_axi_node(Node):
@@ -12,36 +13,14 @@ class wishlist_axi_node(Node):
         self.value = None
         self.logger = get_logger(self.path_name, logging.INFO)
         self.bus_width = 32
+        if self.is_root:
+            self.axi = AXIDriver(start_address=self.address, address_size=self.address_size)
 
-    def mapper(self, fileno, size, offset):
-        index = offset % mmap.ALLOCATIONGRANULARITY
-        base = offset - index
-        length = 4 * size
-        maplength = index + length
-        mm = mmap.mmap(fileno, maplength, access=mmap.ACCESS_WRITE, offset=base)
-        mv = memoryview(mm)
-        return mv[index:], length
-
-    def read_words(self):
-        with open('/dev/mem', 'r+b') as devmem:
-            (mv, length) = self.mapper(devmem.fileno(), len(self.address), self.address[0])
-            mv_int = mv.cast('I')
-            data = list(mv_int)
-            devmem.close()
-            return data
-
-    def write_words(self, data):
-        with open('/dev/mem', 'w+') as devmem:
-            (mv, length) = self.mapper(devmem.fileno(), len(self.address), self.address[0])
-            mv_int = mv.cast('I')
-            for i, v in enumerate(data):
-                mv_int[i] = v
-            return True
 
     def read(self):
-        read_values = self.read_words()
-        self.logger.debug(f'Reading values from address {self.address}, read values: {read_values}')
-        value = registers_to_node(self.address, self.mask, read_values, self.bus_width, self.logger)
+        read_values = self.root.axi.read_words(self.offset)
+        self.logger.debug(f'Reading values from address {self.address}, offset {self.offset}, read values: {read_values}')
+        value = registers_to_node(self.offset, self.mask, read_values, self.bus_width, self.logger)
         return value
 
     def write(self, value):
@@ -50,13 +29,13 @@ class wishlist_axi_node(Node):
             sys.exit()
         # Reading all the registers associated with the node with the bus mask if any mask bit is 0
         if self.mask != [word_mask(self.bus_width) for _ in range(len(self.mask))]:
-            read_values = self.read_words()
+            read_values = self.root.axi.read_words(self.offset)
         else:
             read_values = [0 for _ in range(len(self.mask))]
         # Writing combined data back
-        write_values = node_to_register(value, self.address, self.mask, read_values, self.bus_width, self.logger)
+        write_values = node_to_register(value, self.offset, self.mask, read_values, self.bus_width, self.logger)
         self.logger.debug(f'Writing the following values {write_values}')
-        self.write_words(write_values)
+        self.root.axi.write_words(self.offset,write_values)
         return True
 
     def convert(self, value, parameter, **kwargs):
