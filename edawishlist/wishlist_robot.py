@@ -14,8 +14,8 @@ from pytz import timezone
 
 
 class wishlist_robot(object):
-    def __init__(self, yaml_file=None, log_level=logging.INFO,base_node=None):
-        self.logger = get_logger('Wishlist Robot', log_level)
+    def __init__(self, name, yaml_file=None, log_level=logging.INFO,base_node=None):
+        self.logger = get_logger(f'Wishlist Robot {name}', log_level)
         if not yaml_file:
             yaml_file = os.getenv("BACKANNOTATED_YAML")
         self.logger.info(f'Starting robot in {socket.gethostname()} using the register tree shown below loaded from {yaml_file}')
