@@ -19,7 +19,7 @@ class wishlist_axi_node(Node):
     def read(self):
         read_values = self.root.axi.read_words(self.offset)
         # Use efficient logging format
-        self.logger.debug('Reading values from address 0x%x, offset %s, read values: %s', self.address, self.offset, read_values)
+        #self.logger.debug('Reading values from address 0x%x, offset %s, read values: %s', self.address, self.offset, read_values)
         value = registers_to_node(self.offset, self.mask, read_values, self.bus_width, self.logger)
         return value
 
@@ -43,7 +43,7 @@ class wishlist_axi_node(Node):
         # Writing combined data back
         write_values = node_to_register(value, self.offset, self.mask, read_values, self.bus_width, self.logger)
         # Use efficient logging format
-        self.logger.debug('Writing the following values %s', write_values)
+        #self.logger.debug('Writing the following values %s', write_values)
         self.root.axi.write_words(self.offset, write_values)
         return True
 

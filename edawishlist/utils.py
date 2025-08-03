@@ -44,10 +44,10 @@ def registers_to_node(address, mask, read_values, bus_width, logger):
 
         # Use efficient logging format to avoid string formatting overhead
         # when the log level is not DEBUG.
-        logger.debug(
-            'Shifting up value (0x%x >> %s) from address 0x%x by %s and adding to intermediate sum with value 0x%x. The current word width is %s.',
-            rdvl, word_lsb, addr, node_lsb, value, word_width
-        )
+        # logger.debug(
+        #     'Shifting up value (0x%x >> %s) from address 0x%x by %s and adding to intermediate sum with value 0x%x. The current word width is %s.',
+        #     rdvl, word_lsb, addr, node_lsb, value, word_width
+        # )
 
         value += ((rdvl & msk) >> word_lsb) << node_lsb
         node_lsb += word_width
@@ -71,10 +71,10 @@ def node_to_register(value, address, mask, read_values, bus_width, logger):
         lsb_pos = lsb(msk)
 
         # Use efficient logging format
-        logger.debug(
-            'Word width = %s, node_mask = 0x%x, node_word_value = %s, lsb = %s',
-            word_width, node_word_mask, node_word_value, lsb_pos
-        )
+        # logger.debug(
+        #     'Word width = %s, node_mask = 0x%x, node_word_value = %s, lsb = %s',
+        #     word_width, node_word_mask, node_word_value, lsb_pos
+        # )
 
         bus_word_value = node_word_value << lsb_pos
         word_to_keep = rdvl & (bus_mask - msk)
@@ -86,13 +86,13 @@ def node_to_register(value, address, mask, read_values, bus_width, logger):
             'W:%s Combining word_to_keep:(0b%s, 0x%x, %s) to bus_word_value: '
             '(0b%s, 0x%x, %s), resulting in combined: (0b%s, 0x%x, %s)'
         )
-        logger.debug(
-            debug_msg,
-            i,
-            format(word_to_keep, f'0{bus_width}b'), word_to_keep, word_to_keep,
-            format(bus_word_value, f'0{bus_width}b'), bus_word_value, bus_word_value,
-            format(combined, f'0{bus_width}b'), combined, combined
-        )
+        # logger.debug(
+        #     debug_msg,
+        #     i,
+        #     format(word_to_keep, f'0{bus_width}b'), word_to_keep, word_to_keep,
+        #     format(bus_word_value, f'0{bus_width}b'), bus_word_value, bus_word_value,
+        #     format(combined, f'0{bus_width}b'), combined, combined
+        # )
 
         write_values.append(combined)
         node_lsb += word_width
