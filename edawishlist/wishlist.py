@@ -228,7 +228,7 @@ class wishlist(memory):
         }))
         # Back-annottating address and mask
         node.address = [HexInt(addr) for addr in address_list]
-        node.offset = [addr - node.root.address for addr in address_list]
+        node.offset = [int((addr - node.root.address)/node.root.address_increment) for addr in address_list]
         node.mask = [HexInt(self.bit_list_to_mask(bits_list)) for bits_list in address_bits_lists]
 
 

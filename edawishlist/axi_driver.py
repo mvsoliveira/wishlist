@@ -1,65 +1,29 @@
-from edawishlist import mmio
-import numpy
-import numpy as np
 import os
+import mmap
+import ctypes
 
-from bigtree import Node
-from edawishlist.utils import registers_to_node, node_to_register, get_logger, word_mask
-# from node import wishlist_axi_node
-import logging
-import sys
-
-
-class device(object):
-    def has_capability(self,name):
-        if name == 'MEMORY_MAPPED':
-            return True
-        else:
-            return False
-
-    def mmap(self, base_addr, length):
-        import mmap
-
-        euid = os.geteuid()
-        if euid != 0:
-            raise EnvironmentError("Root permissions required.")
-
-        # Align the base address with the pages
-        virt_base = base_addr & ~(mmap.PAGESIZE - 1)
-
-        # Calculate base address offset w.r.t the base address
-        virt_offset = base_addr - virt_base
-
-        # Open file and mmap
-        mmap_file = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
-        mem = mmap.mmap(
-            mmap_file,
-            length + virt_offset,
-            mmap.MAP_SHARED,
-            mmap.PROT_READ | mmap.PROT_WRITE,
-            offset=virt_base,
-        )
-        os.close(mmap_file)
-        array = np.frombuffer(mem, np.uint32, length >> 2, virt_offset)
-        return array
 
 
 class AXIDriver(object):
     def __init__(self, start_address, address_size):
         self.start_address = start_address
         self.address_size = address_size
-        self.hw = mmio.MMIO(start_address,address_size << 2,device())
+        # Open /dev/mem with read/write permissions
+        fd = os.open("/dev/mem", os.O_RDWR)
 
-    def read_words(self, address):
-        data = []
-        for addr in address:
-            data.append(self.hw.read(addr))
-        return data
+        # Memory-map the file (this requires root privileges)
+        vaddr = mmap.mmap(fd, self.address_size, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE, offset=self.start_address)
 
-    def write_words(self, address, data):
-        for i in range(len(address)):
-            self.hw.write(address[i], data[i])
-        return True
+        # Cast the memory map to a ctypes pointer (similar to uint32_t* in C++)
+        self.mem32 = (ctypes.c_uint32 * (self.address_size // 4)).from_buffer(vaddr)
+
+
+    def read_words(self, offsets):
+        return [self.mem32[off] for off in offsets]
+
+    def write_words(self, offsets, data):
+        for offset, value in zip(offsets, data):
+            self.mem32[offset] = value
 
 if __name__ == "__main__":
 
@@ -67,18 +31,16 @@ if __name__ == "__main__":
     import humanreadable as hr
 
     print('I am starting the test...')
-    #offset= 0xA10008AC
-    hw = mmio.MMIO(0xA4040000, 0x00010000 << 2, device())
-
+    hw = AXIDriver(start_address=0xA4040000, address_size=0x100000)  # Adjust the start_address and address_size as needed
     #0xA10008AC
-    N = 1000
+    N = 100000
     start = time.time()
     wdata = 0x1
     for i in range (N):
-        hw.read(0x0)
+        hw.mem32[0x0]
     end = time.time()
     elapsed = (end-start)/N
-    print('MMIO direct access ',hr.Time(f"{elapsed:.10f}", default_unit=hr.Time.Unit.SECOND).to_humanreadable())
+    print('Direct access ',hr.Time(f"{elapsed:.10f}", default_unit=hr.Time.Unit.SECOND).to_humanreadable())
 
     # zfpga = zfpga(log_level=logging.INFO,
     #               name='Z',
