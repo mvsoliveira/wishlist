@@ -70,7 +70,7 @@ def get_node_names(node,direction):
 
 
 class wishlist(memory):
-    def __init__(self, wishlist_file):
+    def __init__(self, wishlist_file, templates_path):
         self.tree = None
         self.wishlist_file = wishlist_file
         self.read_input_file()
@@ -78,7 +78,7 @@ class wishlist(memory):
         pathlib.Path(self.wishlist_dict['firmware_path']).mkdir(parents=True, exist_ok=True)
         pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)
         self.computing_width()
-        self.set_jinja_environment()
+        self.set_jinja_environment(templates_path)
         self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')
         # starting memory object
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
@@ -255,8 +255,8 @@ class wishlist(memory):
 
 
 
-    def set_jinja_environment(self):
-        self.environment = Environment(loader=FileSystemLoader("templates/"))
+    def set_jinja_environment(self, templates_path):
+        self.environment = Environment(loader=FileSystemLoader(templates_path))
         self.environment.globals['attr_in_children'] = attr_in_children
         self.environment.globals['attr_in_family'] = attr_in_family
         self.environment.globals['get_full_name'] = get_full_name
@@ -334,7 +334,13 @@ def xml_beautify(content):
 
 
 def main():
-    obj = wishlist(sys.argv[1])
+    import argparse
+    from pathlib import Path
+    parser = argparse.ArgumentParser()
+    parser.add_argument("wishlist_file", help="Path to the wishlist yaml file")
+    parser.add_argument("--templates_path", default='templates/', type=Path, required=False, help="Path to the wishlist yaml templates files")
+    args = parser.parse_args()
+    obj = wishlist(wishlist_file=args.wishlist_file, templates_path=args.templates_path)
 
 
 if __name__ == '__main__':
