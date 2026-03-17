@@ -79,7 +79,8 @@ class wishlist(memory):
         pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)
         self.computing_width()
         self.set_jinja_environment(templates_path)
-        self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg')
+        # self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg', ext='vhd')
+        # self.generate_vhdl_file(template="sv_package.jinja2", suffix='pkg', ext='sv')
         # starting memory object
         super().__init__(start=self.tree.address, end=self.tree.address + self.tree.address_size - 1,
                          width=self.tree.address_width, increment=self.tree.address_increment)
@@ -99,10 +100,15 @@ class wishlist(memory):
         # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
         self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
-        self.generate_vhdl_address_decoder_file()
-        self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
-        self.generate_vhdl_file(template="vhdl_axilite.jinja2", suffix='axilite')
-        self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
+        self.generate_file(filepath='pkg.vhd.jinja2')
+        self.generate_file(filepath='pkg.sv.jinja2')
+        self.generate_file(filepath='address_decoder.vhd.jinja2')
+        self.generate_file(filepath='address_decoder.sv.jinja2')
+        # self.generate_vhdl_address_decoder_file(ext='vhd')
+        # self.generate_vhdl_address_decoder_file(ext='sv')
+        # self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
+        # self.generate_vhdl_file(template="vhdl_axilite.jinja2", suffix='axilite')
+        # self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
         # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index,:]
@@ -257,34 +263,25 @@ class wishlist(memory):
 
     def set_jinja_environment(self, templates_path):
         self.environment = Environment(loader=FileSystemLoader(templates_path))
-        self.environment.globals['attr_in_children'] = attr_in_children
-        self.environment.globals['attr_in_family'] = attr_in_family
-        self.environment.globals['get_full_name'] = get_full_name
-        self.environment.globals['get_node_names'] = get_node_names
+        # self.environment.globals['attr_in_children'] = attr_in_children
+        # self.environment.globals['attr_in_family'] = attr_in_family
+        # self.environment.globals['get_full_name'] = get_full_name
+        # self.environment.globals['get_node_names'] = get_node_names
 
-    def generate_vhdl_file(self, template, suffix):
+    def generate_vhdl_file(self, template, suffix, ext='vhd'):
         template = self.environment.get_template(template)
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.vhd"
-        content = template.render(self.wishlist_dict,
-                                  registers=list(self.register_nodes_iter()),
-                                  hierarchies=list(self.hierarchical_nodes_iter()),
-                                  )
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
+        content = template.render(self.wishlist_dict)
         with open(filename, mode="w") as message:
             message.write(content)
 
-    def generate_vhdl_address_decoder_file(self):
-        template = self.environment.get_template("vhdl_address_decoder.jinja2")
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder.vhd"
+    def generate_file(self, filepath):
+        suffix = filepath.split('.')[0]
+        ext = filepath.split('.')[1]
+        template = self.environment.get_template(filepath)
+        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
         content = template.render(self.wishlist_dict,
-                                  registers=list(self.register_nodes_iter()),
-                                  hierarchies=list(self.hierarchical_nodes_iter()),
-                                  address_decoder=self.address_decoder,
-                                  np=np,
-                                  get_address_string=self.get_address_string,
-                                  get_vhdl_bit_string=self.get_vhdl_bit_string,
-                                  # get_signal_name = self.get_signal_name,
-
-                                  )
+                                  address_decoder=self.address_decoder)
         with open(filename, mode="w") as message:
             message.write(content)
 
