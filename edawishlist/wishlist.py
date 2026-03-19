@@ -14,7 +14,7 @@ import pathlib
 import sys
 import random
 from string import Template
-
+from importlib.resources import files
 
 def attr_in_family(node, attr, value):
     for n in preorder_iter(node):
@@ -104,6 +104,8 @@ class wishlist(memory):
         self.generate_file(filepath='pkg.sv.jinja2')
         self.generate_file(filepath='address_decoder.vhd.jinja2')
         self.generate_file(filepath='address_decoder.sv.jinja2')
+        self.generate_file(filepath='instantiation.vhd.jinja2')
+        self.generate_file(filepath='instantiation.sv.jinja2')
         # self.generate_vhdl_address_decoder_file(ext='vhd')
         # self.generate_vhdl_address_decoder_file(ext='sv')
         # self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
@@ -262,7 +264,12 @@ class wishlist(memory):
 
 
     def set_jinja_environment(self, templates_path):
+        if not templates_path:
+            templates_path = files("edawishlist") / "templates"
+        def to_binary(value, width):
+            return format(int(value), f'0{width}b')
         self.environment = Environment(loader=FileSystemLoader(templates_path))
+        self.environment.filters['to_binary'] = to_binary
         # self.environment.globals['attr_in_children'] = attr_in_children
         # self.environment.globals['attr_in_family'] = attr_in_family
         # self.environment.globals['get_full_name'] = get_full_name
@@ -281,7 +288,8 @@ class wishlist(memory):
         template = self.environment.get_template(filepath)
         filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
         content = template.render(self.wishlist_dict,
-                                  address_decoder=self.address_decoder)
+                                  address_decoder=self.address_decoder,
+                                  tree=self.tree)
         with open(filename, mode="w") as message:
             message.write(content)
 
@@ -335,7 +343,7 @@ def main():
     from pathlib import Path
     parser = argparse.ArgumentParser()
     parser.add_argument("wishlist_file", help="Path to the wishlist yaml file")
-    parser.add_argument("--templates_path", default='templates/', type=Path, required=False, help="Path to the wishlist yaml templates files")
+    parser.add_argument("--templates_path", default=None, type=Path, required=False, help="Path to the wishlist yaml templates files")
     args = parser.parse_args()
     obj = wishlist(wishlist_file=args.wishlist_file, templates_path=args.templates_path)
 
