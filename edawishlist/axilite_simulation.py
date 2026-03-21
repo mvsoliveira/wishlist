@@ -29,7 +29,7 @@ async def cycle(axi_master, address, mask, read_mode, write_values):
             integer = int.from_bytes(data, byteorder='little', signed=False)
             read_values.append(integer & msk)
         if resp != AxiResp.OKAY:
-            raise Exception(f'AXI transfer with read_mode = {read_mode}, addr= {addr} returned response code {resp}')
+            raise Exception(f'AXI transfer with read_mode = {read_mode}, addr= 0x{addr:X} returned response code {resp}')
     if read_mode:
         return read_values
     else:
@@ -52,8 +52,8 @@ async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
     for node in nodes:
         logger.info(f'Checking node: {node.path_name}, permission: {node.permission}')
         node_value = await read_node(axi_master, node, bus_width, logger, cycle)
-        logger.debug(f'Stimulus = {node.stimulus}, actual= {node_value}')
-        assert node.stimulus == node_value, f'Actual data for Node {node.path_name} {node_value} is different than applied stimulus {node.stimulus}'
+        logger.debug(f'Stimulus = 0x{node.stimulus:X}, actual= 0x{node_value:X}')
+        assert node.stimulus == node_value, f'Actual data for Node {node.path_name} 0x{node_value:X} is different than applied stimulus 0x{node.stimulus:X}'
 
 
 @cocotb.coroutine

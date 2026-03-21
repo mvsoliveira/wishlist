@@ -51,9 +51,9 @@ class wishlist_robot(object):
                 value = node.read()
                 # Checking read value against stimulus for errors
                 if value != node.stimulus:
-                    node.logger.critical(f'node check error at iteration {i}: {value} (0x{value:08x}), expected: {node.stimulus}')
+                    node.logger.critical(f'node check error at iteration {i}: 0x{value:X}, expected: 0x{node.stimulus:X}')
                     sys.exit()
-                node.logger.debug(f'Read value is {value} (0x{value:08x})and stimulus is  {node.stimulus}')
+                node.logger.debug(f'Read value is 0x{value:X} and stimulus is 0x{node.stimulus:X}')
             # Logging status every 100 iterations
             if not i % 1000:
                 self.logger.info(f'Stress test iteration {i} out of {N} elapsed {time.time() - start_time} seconds')

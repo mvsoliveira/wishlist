@@ -72,8 +72,8 @@ async def register_test(dut, logger, tree, shufle_order=1):
     for node in nodes:
         logger.info(f'Checking node: {node.path_name}, permission: {node.permission}')
         node_value = await read_node(dut, node, bus_width, logger, cycle)
-        logger.debug(f'Stimulus = {node.stimulus}, actual= {node_value}')
-        assert node.stimulus == node_value, f'Actual data for Node {node.path_name} {node_value} is different than applied stimulus {node.stimulus}'
+        logger.debug(f'Stimulus = 0x{node.stimulus:X}, actual= 0x{node_value:X}')
+        assert node.stimulus == node_value, f'Actual data for Node {node.path_name} 0x{node_value:X} is different than applied stimulus 0x{node.stimulus:X}'
 
 
 

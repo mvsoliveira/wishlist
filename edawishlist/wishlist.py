@@ -1,5 +1,6 @@
 import pandas as pd
 from bigtree import nested_dict_to_tree, tree_to_nested_dict, print_tree, postorder_iter, preorder_iter, Node, shift_nodes
+from edawishlist.utils import print_tree_hex
 import yaml
 import logging
 from jinja2 import Environment, FileSystemLoader
@@ -94,7 +95,7 @@ class wishlist(memory):
             self.allocate(node)
         # Writing back-annotated yam file
         self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
-        print_tree(self.tree,all_attrs=True)
+        print_tree_hex(self.tree)
         # Generating software description file
         self.generate_uhal_file()
         # Generating address decoder tables and VHDL code

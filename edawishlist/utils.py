@@ -104,14 +104,18 @@ def get_logger(name, level, format_string=None):
     Configures and returns a logger.
     """
     logger = logging.getLogger(name)
-    handler = logging.StreamHandler()
-    if format_string is None:
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-    else:
-        formatter = logging.Formatter(format_string)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
     logger.setLevel(level)
+    # Skip adding a StreamHandler if the root logger already has handlers
+    # (e.g. cocotb configures the root logger at startup — adding another
+    # StreamHandler here would cause every message to appear twice).
+    if not logger.handlers and not logging.root.handlers:
+        handler = logging.StreamHandler()
+        if format_string is None:
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+        else:
+            formatter = logging.Formatter(format_string)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
     return logger
 
 
@@ -130,11 +134,33 @@ def read_tree(yaml_file=None, CustomNode=Node):
     return nested_dict_to_tree(wishlist_dict, node_type=CustomNode)
 
 
+_HEX_ATTRS = {'address', 'mask', 'stimulus'}
+
+
+def _fmt_attr(k, v):
+    if k in _HEX_ATTRS:
+        if isinstance(v, list):
+            return f"{k}=[{', '.join(f'0x{x:X}' for x in v)}]"
+        if isinstance(v, int):
+            return f"{k}=0x{v:X}"
+    return f"{k}={v}"
+
+
+def print_tree_hex(tree):
+    """
+    Prints the tree to stdout with address, mask, and stimulus formatted as hex.
+    """
+    for branch, stem, node in yield_tree(tree):
+        attrs = node.describe(exclude_attributes=["name", 'logger', 'bus_width'], exclude_prefix="_")
+        attrs_str = ', '.join(_fmt_attr(k, v) for k, v in attrs)
+        print(f"{branch}{stem}{node.node_name} [{attrs_str}]")
+
+
 def log_tree(tree, logger):
     """
     Logs the structure of a tree.
     """
     for branch, stem, node in yield_tree(tree):
         attrs = node.describe(exclude_attributes=["name", 'logger', 'bus_width'], exclude_prefix="_")
-        attr_str_list = [f"{k}={v}" for k, v in attrs]
-        logger.info(f"{branch}{stem}{node.node_name} {attr_str_list}")
+        attrs_str = ', '.join(_fmt_attr(k, v) for k, v in attrs)
+        logger.info(f"{branch}{stem}{node.node_name} [{attrs_str}]")
