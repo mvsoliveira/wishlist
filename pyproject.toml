@@ -16,18 +16,15 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ['pandas','bigtree','pyyaml']
-
-[project.optional-dependencies]
-full = ['jinja2']
+dependencies = ['pandas','bigtree','pyyaml','jinja2']
 
 
 [project.scripts]
 wishlist = "edawishlist.wishlist:main"
 
 [project.urls]
-Homepage = "https://gitlab.cern.ch/msilvaol/wishlist"
-Issues = "https://gitlab.cern.ch/msilvaol/wishlist/-/issues"
+Homepage = "https://github.com/mvsoliveira/wishlist"
+Issues = "https://github.com/mvsoliveira/wishlist/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["edawishlist/"]

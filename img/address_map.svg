@@ -1,0 +1,73 @@
+<svg width="740" height="164" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New', monospace">
+  <defs>
+    <filter id="sh">
+      <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="740" height="164" fill="#1e2430" rx="8"/>
+
+  <!-- Column header row -->
+  <text x="52"  y="22" font-size="10" fill="#718096" text-anchor="middle">31</text>
+  <text x="156" y="22" font-size="10" fill="#718096" text-anchor="middle">28</text>
+  <text x="208" y="22" font-size="10" fill="#718096" text-anchor="middle">27</text>
+  <text x="724" y="22" font-size="10" fill="#718096" text-anchor="middle">0</text>
+
+  <!-- ── Row 0x0 ── -->
+  <text x="10" y="56" font-size="11" fill="#718096" font-family="'Courier New', monospace">0x0</text>
+
+  <!-- pll_lock (bit 31) -->
+  <rect x="36" y="32" width="68" height="32" rx="3" fill="#805ad5" filter="url(#sh)"/>
+  <text x="70"  y="52" text-anchor="middle" font-size="9" fill="white">pll_lock</text>
+
+  <!-- pll_reset (bit 30) -->
+  <rect x="106" y="32" width="68" height="32" rx="3" fill="#3182ce" filter="url(#sh)"/>
+  <text x="140" y="52" text-anchor="middle" font-size="9" fill="white">pll_reset</text>
+
+  <!-- sys_reset (bit 29) -->
+  <rect x="176" y="32" width="68" height="32" rx="3" fill="#3182ce" filter="url(#sh)"/>
+  <text x="210" y="52" text-anchor="middle" font-size="9" fill="white">sys_reset</text>
+
+  <!-- task_start (bit 28) -->
+  <rect x="246" y="32" width="68" height="32" rx="3" fill="#3182ce" filter="url(#sh)"/>
+  <text x="280" y="52" text-anchor="middle" font-size="9" fill="white">task_start</text>
+
+  <!-- task_done (bit 27) -->
+  <rect x="316" y="32" width="68" height="32" rx="3" fill="#805ad5" filter="url(#sh)"/>
+  <text x="350" y="52" text-anchor="middle" font-size="9" fill="white">task_done</text>
+
+  <!-- unused bits 26..0 -->
+  <rect x="386" y="32" width="342" height="32" rx="3" fill="#2d3748"/>
+  <text x="557" y="52" text-anchor="middle" font-size="9" fill="#4a5568">(unused)</text>
+
+  <!-- ── Row 0x1 ── -->
+  <text x="10" y="106" font-size="11" fill="#718096" font-family="'Courier New', monospace">0x1</text>
+
+  <!-- snapshot_output[35:6] spans full word -->
+  <rect x="36" y="80" width="692" height="32" rx="3" fill="#805ad5" filter="url(#sh)"/>
+  <text x="382" y="100" text-anchor="middle" font-size="9" fill="white">snapshot_output (35 downto 6)</text>
+
+  <!-- ── Row 0x2 ── -->
+  <text x="10" y="156" font-size="11" fill="#718096" font-family="'Courier New', monospace">0x2</text>
+
+  <!-- snapshot_output[5:0] — lower 6 bits of 36-bit value, occupies bits 31..26 -->
+  <rect x="36"  y="128" width="210" height="32" rx="3" fill="#805ad5" filter="url(#sh)"/>
+  <text x="141" y="148" text-anchor="middle" font-size="9" fill="white">snapshot_output (5 downto 0)</text>
+
+  <!-- snapshot_enable -->
+  <rect x="248" y="128" width="68"  height="32" rx="3" fill="#3182ce" filter="url(#sh)"/>
+  <text x="282" y="148" text-anchor="middle" font-size="9" fill="white">snap_en</text>
+
+  <!-- unused -->
+  <rect x="318" y="128" width="410" height="32" rx="3" fill="#2d3748"/>
+  <text x="523" y="148" text-anchor="middle" font-size="9" fill="#4a5568">(unused)</text>
+
+  <!-- Legend -->
+  <rect x="36"  y="4" width="10" height="10" rx="2" fill="#805ad5"/>
+  <text x="50"  y="13" font-size="9" fill="#a0aec0" font-family="'Segoe UI', Arial, sans-serif">read-only (r)</text>
+  <rect x="130" y="4" width="10" height="10" rx="2" fill="#3182ce"/>
+  <text x="144" y="13" font-size="9" fill="#a0aec0" font-family="'Segoe UI', Arial, sans-serif">read-write (rw)</text>
+  <rect x="230" y="4" width="10" height="10" rx="2" fill="#2d3748" stroke="#4a5568" stroke-width="1"/>
+  <text x="244" y="13" font-size="9" fill="#4a5568" font-family="'Segoe UI', Arial, sans-serif">unused (pruned)</text>
+</svg>
