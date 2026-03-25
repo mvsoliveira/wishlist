@@ -77,8 +77,10 @@ address: 0xA0010000
 address_width: 32
 address_increment: 4
 address_size: 65536
-software_path: software
-firmware_path: firmware
+software:
+  path: software
+firmware:
+  path: firmware
 children:
   - {name: pll_lock,   width: 1,  permission: r,  description: PLL lock flag}
   - {name: pll_reset,  width: 1,  permission: rw, description: PLL reset signal}
@@ -661,17 +663,49 @@ The back-annotated YAML is also the input to the **Wishlist Robot** and the coco
 
 ![Wishlist Pipeline](img/pipeline.svg)
 
-All output files are generated from Jinja2 templates. The built-in templates cover VHDL, SystemVerilog, uHAL XML, and HTML. You can provide your own template directory to:
-
-- Add support for a new HDL (e.g., Verilog, VHDL-2019 protected types)
-- Add support for a new protocol (e.g., custom XML format for a register browser)
-- Customize naming conventions or formatting
+All output files are generated from Jinja2 templates. The built-in templates cover VHDL, SystemVerilog, uHAL XML, and interactive HTML. When you pass `--templates_path`, Wishlist runs the built-in templates first and then all templates found in your folder on top — so you can add entirely new output formats without losing the standard ones.
 
 ```bash
 wishlist mydesign.yaml --templates_path /path/to/my_templates/
 ```
 
-Templates receive the full parsed register tree as context, including all custom YAML attributes (not just the mandatory ones). This enables tools like the Wishlist Robot to be configured via the same YAML file.
+**Template naming convention** — the output filename is derived from the template name:
+
+```
+<suffix>.<ext>.jinja2  →  <name>_<suffix>.<ext>
+```
+
+The extension determines the output directory:
+
+| Extension | Default output directory |
+|-----------|--------------------------|
+| `.vhd`, `.sv`, `.v`, `.csv`, … (anything not listed below) | `firmware.path/` |
+| `.xml`, `.html`, `.htm`, `.json`, `.yaml`, `.yml` | `software.path/` |
+
+The filetype set that routes to `software` can be overridden with the optional `filetypes` key:
+
+```yaml
+software:
+  path: software
+  filetypes: [xml, html, htm, json, yaml, yml, csv]
+firmware:
+  path: firmware
+```
+
+When `filetypes` is omitted the default set above applies.
+
+**Overriding a built-in template** — if your external folder contains a file with the same name as a built-in template (e.g. `pkg.vhd.jinja2`), your version takes precedence. This lets you customise naming conventions or formatting for individual outputs without replacing the whole template set.
+
+**Template context** — every template receives the full context:
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `name`, `address`, … | `str` / `int` | All top-level YAML fields |
+| `tree` | `bigtree.Node` | Full register tree (post-flattening, with addresses and masks) |
+| `address_decoder` | `pandas.DataFrame` | Flat address/bits table used by the decoder templates |
+| `rows`, `headers`, … | `list` / `dict` | Pre-processed address map used by the HTML template |
+
+All custom YAML attributes (e.g., `clock`, `conversion`, `description`) are available on every tree node, enabling tools like the Wishlist Robot to be driven from the same YAML file.
 
 ### 6. Self-Testing FW and SW Routines
 

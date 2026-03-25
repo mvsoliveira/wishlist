@@ -16,8 +16,8 @@ default_root_attrs = {
     'address_width': 32,
     'address_increment': 4,
     'address_size': 2 ** 16,
-    'software_path': '../examples',
-    'firmware_path': '../examples',
+    'software': {'path': '../examples'},
+    'firmware': {'path': '../examples'},
 }
 
 # reading xml to dict string

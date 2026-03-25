@@ -75,9 +75,10 @@ class wishlist(memory):
         self.tree = None
         self.wishlist_file = wishlist_file
         self.read_input_file()
+        self._normalize_path_config()
         self.create_tree()
-        pathlib.Path(self.wishlist_dict['firmware_path']).mkdir(parents=True, exist_ok=True)
-        pathlib.Path(self.wishlist_dict['software_path']).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(self._firmware_path).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(self._software_path).mkdir(parents=True, exist_ok=True)
         self.computing_width()
         self.set_jinja_environment(templates_path)
         # self.generate_vhdl_file(template="vhdl_package.jinja2", suffix='pkg', ext='vhd')
@@ -93,35 +94,39 @@ class wishlist(memory):
         self.address_decoder_list = []
         for node in self.register_nodes_iter():
             self.allocate(node)
-        # Writing back-annotated yam file
-        self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
+        # Writing back-annotated yaml file
+        self.write_yaml_file(tree_to_nested_dict(self.tree,all_attrs=True),f"{self._firmware_path}/{self.wishlist_dict['name'].lower()}_backannotated.yaml")
         print_tree_hex(self.tree)
-        # Generating software description file
-        self.generate_uhal_file()
-        # Generating address decoder tables and VHDL code
+        # Prepare uHAL tree (converts addresses to relative — must happen before rendering)
+        self.prepare_uhal_tree()
+        # Build address decoder DataFrame and address map (used by all templates)
         self.address_decoder = pd.concat(self.address_decoder_list)
-        self.generate_file(filepath='pkg.vhd.jinja2')
-        self.generate_file(filepath='pkg.sv.jinja2')
-        self.generate_file(filepath='address_decoder.vhd.jinja2')
-        self.generate_file(filepath='address_decoder.sv.jinja2')
-        self.generate_file(filepath='instantiation.vhd.jinja2')
-        self.generate_file(filepath='instantiation.sv.jinja2')
-        # self.generate_vhdl_address_decoder_file(ext='vhd')
-        # self.generate_vhdl_address_decoder_file(ext='sv')
-        # self.generate_vhdl_file(template="vhdl_instantiation.jinja2", suffix='instantiation')
-        # self.generate_vhdl_file(template="vhdl_axilite.jinja2", suffix='axilite')
-        # self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
-        # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
         self.space_style = self.space_style.loc[self.space.index, :]
-        # Render HTML address map via Jinja2 template
-        address_map = build_address_map(self.space, self.space_style, self.wishlist_dict, self.tree)
-        template = self.environment.get_template('address_space.html.jinja2')
-        content = template.render(**address_map)
-        html_path = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_address_space.html"
-        with open(html_path, mode="w") as f:
-            f.write(content)
-        #self.space.fillna('').to_latex(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.latex",label=self.wishlist_dict['name'].lower(), index=False, longtable=True)
+        self.address_map = build_address_map(self.space, self.space_style, self.wishlist_dict, self.tree)
+        # Render all templates found in the active templates folder
+        self.generate_all_files()
+
+    def _normalize_path_config(self):
+        """Extract output paths and filetype routing from the 'software' and
+        'firmware' YAML entries.
+
+        Expected YAML structure:
+            software:
+              path: software
+              filetypes: [xml, html, htm, json, yaml, yml]   # optional
+            firmware:
+              path: firmware
+
+        'filetypes' under 'software' lists extensions that route to software_path;
+        everything else routes to firmware_path.  When 'filetypes' is omitted the
+        built-in default set applies.
+        """
+        _default_software_exts = {'xml', 'html', 'htm', 'json', 'yaml', 'yml'}
+        sw = self.wishlist_dict['software']
+        self._software_path = sw['path']
+        self._software_exts = set(sw.get('filetypes', _default_software_exts))
+        self._firmware_path = self.wishlist_dict['firmware']['path']
 
     def read_input_file(self):
         with open(self.wishlist_file, "r") as stream:
@@ -265,58 +270,61 @@ class wishlist(memory):
 
 
     def set_jinja_environment(self, templates_path):
-        if not templates_path:
-            templates_path = files("edawishlist") / "templates"
+        self.builtin_templates_path = pathlib.Path(str(files("edawishlist") / "templates"))
+        self.external_templates_path = pathlib.Path(str(templates_path)) if templates_path else None
+        search_paths = [str(self.builtin_templates_path)]
+        if self.external_templates_path:
+            search_paths.insert(0, str(self.external_templates_path))
         def to_binary(value, width):
             return format(int(value), f'0{width}b')
-        self.environment = Environment(loader=FileSystemLoader(templates_path))
+        self.environment = Environment(loader=FileSystemLoader(search_paths))
         self.environment.filters['to_binary'] = to_binary
-        # self.environment.globals['attr_in_children'] = attr_in_children
-        # self.environment.globals['attr_in_family'] = attr_in_family
-        # self.environment.globals['get_full_name'] = get_full_name
-        # self.environment.globals['get_node_names'] = get_node_names
 
     def generate_vhdl_file(self, template, suffix, ext='vhd'):
         template = self.environment.get_template(template)
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
+        filename = f"{self._firmware_path}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
         content = template.render(self.wishlist_dict)
         with open(filename, mode="w") as message:
             message.write(content)
 
     def generate_file(self, filepath):
-        suffix = filepath.split('.')[0]
-        ext = filepath.split('.')[1]
+        parts = filepath.split('.')
+        suffix, ext = parts[0], parts[1]
+        out_path = self._software_path if ext in self._software_exts else self._firmware_path
         template = self.environment.get_template(filepath)
-        filename = f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
+        filename = f"{out_path}/{self.wishlist_dict['name'].lower()}_{suffix}.{ext}"
         content = template.render(self.wishlist_dict,
                                   address_decoder=self.address_decoder,
-                                  tree=self.tree)
+                                  tree=self.tree,
+                                  **self.address_map)
+        if not content.strip():
+            return
+        if ext == 'xml':
+            try:
+                content = xml_beautify(content)
+            except:
+                print(f'XML beautify failed for {filepath}, writing raw output.')
         with open(filename, mode="w") as message:
             message.write(content)
 
-    def generate_uhal_file(self):
-        # Masking sure there are no words larger than 32 bits
+    def generate_all_files(self):
+        template_files = sorted(self.builtin_templates_path.glob('*.jinja2'))
+        if self.external_templates_path:
+            template_files += sorted(self.external_templates_path.glob('*.jinja2'))
+        for template_file in template_files:
+            self.generate_file(template_file.name)
+
+    def prepare_uhal_tree(self):
+        # Making sure there are no words larger than 32 bits
         for node in self.register_nodes_iter():
             if node.width > 32:
                 print(f'Omitting node {node.path_name} in XML output because uHAL does not support width higher than 32.')
         # Adding first addr to parent node recursively
         for node in postorder_iter(self.tree, filter_condition=lambda node: not node.is_root):
             node.parent.address = node.parent.children[0].address
-        # Now converting absolute to relative addresses (requirement from uHAL), making sure top remains with addr 0x0
+        # Converting absolute to relative addresses (requirement from uHAL)
         for node in postorder_iter(self.tree, filter_condition=lambda node: node.path_name.count('/') > 2):
             node.address = [node.address[0]-node.parent.address[0]]
-        # Rendering XML file
-        template = self.environment.get_template("xml_uhal.jinja2")
-        content = template.render(tree=self.tree)
-        filename = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_uhal.xml"
-        # Trying to beautify, if fails write rendered version
-        with open(filename, mode="w") as message:
-            try:
-                dom = xml_beautify(content)
-            except:
-                print('XML ERROR, please check output XML')
-                dom = content
-            message.write(dom)
 
 
 
