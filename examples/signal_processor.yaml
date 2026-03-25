@@ -1,0 +1,108 @@
+---
+name: SignalProcessor
+description: >
+  Register map for a multi-channel signal processing SoC. Includes a
+  dual-instance FIR filter bank with per-sensor tap coefficients and rate
+  monitoring counters, clock and PLL management, per-channel reset control,
+  and frame synchronisation status registers.
+address: 0xA0010000
+address_width: 32
+address_increment: 4
+address_size: 65536
+software_path: software
+firmware_path: firmware
+children:
+
+  # ── FIR filter bank ────────────────────────────────────────────────────────
+  - name: fir_filter_bank
+    description: Dual-instance FIR filter bank for real-time signal conditioning
+    children:
+      - name: channel
+        description: Independent processing channel with its own FIR filter and sensor array
+        length: 2
+        children:
+          - name: fir
+            description: Symmetric FIR filter with configurable tap coefficients
+            children:
+              - name: sensor
+                description: Input sensor with tap coefficient RAM and incoming data rate monitor
+                length: 6
+                children:
+                  - name: tap_coeff
+                    description: 16-bit signed tap coefficient for the FIR convolution kernel
+                    length: 4
+                    width: 16
+                    permission: rw
+                  - name: data_rate
+                    description: Free-running counter reporting the number of valid input samples per monitoring window
+                    width: 16
+                    permission: r
+
+  # ── Clock and PLL control ──────────────────────────────────────────────────
+  - name: clk_ctrl
+    description: Clock management and PLL status registers
+    children:
+      - name: pll_ref_lock
+        description: Reference clock PLL lock status; asserted when the reference PLL has acquired and maintained lock
+        width: 1
+        permission: r
+      - name: pll_dsp_lock
+        description: DSP clock PLL lock status; asserted when the high-speed DSP PLL has acquired lock
+        width: 1
+        permission: r
+      - name: pll_reset
+        description: Active-high synchronous reset for both PLLs; hold asserted for at least 4 reference clock cycles
+        width: 1
+        permission: rw
+      - name: clk_sel
+        description: Clock source selector for the FIR filter bank (0 = internal oscillator, 1 = external reference)
+        width: 1
+        permission: rw
+
+  # ── Reset control ──────────────────────────────────────────────────────────
+  - name: reset_ctrl
+    description: Soft-reset control registers for individual sub-blocks
+    children:
+      - name: global_soft_rst
+        description: Global synchronous soft reset; clears all datapath registers and FIFOs when asserted high
+        width: 1
+        permission: rw
+      - name: channel_rst
+        description: Per-channel soft reset; independently resets the FIR filter datapath of each processing channel
+        length: 2
+        width: 1
+        permission: rw
+      - name: coeff_rst
+        description: FIR coefficient RAM reset; reloads all tap coefficients with their power-on default values
+        width: 1
+        permission: rw
+      - name: rate_cnt_rst
+        description: Clears all data-rate monitoring counters simultaneously across all channels and sensors
+        width: 1
+        permission: rw
+
+  # ── Frame synchronisation ──────────────────────────────────────────────────
+  - name: sync_ctrl
+    description: Frame synchronisation and data-refresh control
+    children:
+      - name: frame_sync_en
+        description: Enables the frame synchronisation state machine; must be asserted before data capture begins
+        width: 1
+        permission: rw
+      - name: sync_period
+        description: Frame synchronisation period in clock cycles minus one; defines the monitoring window length
+        width: 16
+        permission: rw
+      - name: data_refresh
+        description: Write 1 to trigger a snapshot of all data-rate counters into the read-back registers; auto-clears after one cycle
+        width: 1
+        permission: rw
+      - name: sync_locked
+        description: Asserted when the frame synchronisation state machine has achieved stable lock to the input data stream
+        width: 1
+        permission: r
+      - name: overflow_flag
+        description: Per-channel sticky overflow flag; asserted if the data-rate counter saturates within a monitoring window; cleared by writing 1
+        length: 2
+        width: 1
+        permission: r

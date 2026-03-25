@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ design_name }} — Address Map</title>
+  <style>
+    /* ── CSS variables for theming ── */
+    :root {
+      --bg:           #1a202c;
+      --bg2:          #2d3748;
+      --bg3:          #252d3d;
+      --border:       #2d3748;
+      --border2:      #4a5568;
+      --text:         #e2e8f0;
+      --text-muted:   #718096;
+      --text-addr:    #a0aec0;
+      --input-bg:     #2d3748;
+      --input-border: #4a5568;
+      --input-focus:  #63b3ed;
+      --h1-color:     #90cdf4;
+      --btn-bg:       #2d3748;
+      --btn-border:   #4a5568;
+      --btn-text:     #a0aec0;
+      --btn-active-bg:     #4a5568;
+      --btn-active-text:   #e2e8f0;
+      --perm-r:       #44337a; --perm-r-text:    #e9d8fd;
+      --perm-r-hard:  #322659; --perm-r-hard-text:#d6bcfa;
+      --perm-rw:      #2a4365; --perm-rw-text:   #bee3f8;
+      --perm-rw-hard: #1a365d; --perm-rw-hard-text:#90cdf4;
+      --unused-bg:    #232b38; --unused-border:   #2d3748;
+      --highlight:    #f6e05e;
+      --stats-color:  #4a5568;
+      --th-hover-bg:  #4a5568;
+      --th-hover-text:#f7fafc;
+      --tooltip-bg:   #1a202c;
+      --tooltip-border:#4a5568;
+      --tooltip-text: #e2e8f0;
+      --tooltip-muted:#a0aec0;
+    }
+    body.light {
+      --bg:           #ffffff;
+      --bg2:          #f0f4f8;
+      --bg3:          #e8edf3;
+      --border:       #dde3ea;
+      --border2:      #b0bec5;
+      --text:         #1a202c;
+      --text-muted:   #607080;
+      --text-addr:    #37474f;
+      --input-bg:     #ffffff;
+      --input-border: #b0bec5;
+      --input-focus:  #3182ce;
+      --h1-color:     #2b6cb0;
+      --btn-bg:       #f0f4f8;
+      --btn-border:   #b0bec5;
+      --btn-text:     #37474f;
+      --btn-active-bg:     #d0e8fb;
+      --btn-active-text:   #1a365d;
+      /* vivid register cells — white text for contrast */
+      --perm-r:       #805ad5; --perm-r-text:    #ffffff;
+      --perm-r-hard:  #553c9a; --perm-r-hard-text:#ffffff;
+      --perm-rw:      #3182ce; --perm-rw-text:   #ffffff;
+      --perm-rw-hard: #2b6cb0; --perm-rw-hard-text:#ffffff;
+      --unused-bg:    #e8edf3; --unused-border:   #dde3ea;
+      --highlight:    #f6ad55;
+      --stats-color:  #90a4ae;
+      --th-hover-bg:  #d0e8fb;
+      --th-hover-text:#1a365d;
+      --tooltip-bg:   #ffffff;
+      --tooltip-border:#b0bec5;
+      --tooltip-text: #1a202c;
+      --tooltip-muted:#607080;
+    }
+
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      padding: 24px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Header ── */
+    h1 { font-size: 20px; font-weight: 600; color: var(--h1-color); margin-bottom: 4px; }
+    .subtitle { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    #search {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 12px;
+      padding: 6px 12px;
+      width: 220px;
+      outline: none;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    #search:focus { border-color: var(--input-focus); }
+    #match-count { color: var(--text-muted); font-size: 11px; min-width: 70px; }
+
+    /* ── Toggle buttons ── */
+    .btn-group {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--btn-border);
+    }
+    .btn-group button {
+      background: var(--btn-bg);
+      border: none;
+      border-left: 1px solid var(--btn-border);
+      color: var(--btn-text);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 5px 10px;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .btn-group button:first-child { border-left: none; }
+    .btn-group button.active {
+      background: var(--btn-active-bg);
+      color: var(--btn-active-text);
+      font-weight: 600;
+    }
+    .btn-group button:hover:not(.active) { filter: brightness(1.15); }
+
+    /* ── Theme toggle (icon button) ── */
+    #theme-btn {
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-border);
+      border-radius: 6px;
+      color: var(--btn-text);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 4px 8px;
+      transition: background 0.15s;
+    }
+    #theme-btn:hover { filter: brightness(1.15); }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-addr);
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border2);
+      transition: background 0.2s;
+    }
+    /* swatch backgrounds are set by updateSwatches() in JS to match cell colours exactly */
+
+    /* ── Table wrapper ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Table ── */
+    table {
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    /* ── Header row ── */
+    thead tr th {
+      background: var(--bg2);
+      color: var(--text-muted);
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      text-align: center;
+      padding: 4px 1px;
+      border: 1px solid var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+      min-width: 18px;
+      transition: background 0.15s, color 0.15s;
+    }
+    th.col-addr {
+      min-width: 110px;
+      font-size: 11px;
+      color: var(--text-addr);
+      text-align: left;
+      padding-left: 8px;
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      background: var(--bg2);
+    }
+    /* Bit-column highlight on register hover */
+    th.bit-active {
+      background: var(--th-hover-bg) !important;
+      color: var(--th-hover-text) !important;
+      font-weight: 700;
+    }
+    /* Address cell highlight on register hover */
+    td.addr-cell.addr-active {
+      background: var(--th-hover-bg) !important;
+      color: var(--th-hover-text) !important;
+      font-weight: 700;
+    }
+
+    /* ── Body rows ── */
+    tbody tr:nth-child(even) td.addr-cell { background: var(--bg3); }
+    tbody tr:nth-child(odd)  td.addr-cell { background: var(--bg2); }
+
+    td.addr-cell {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text-addr);
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-right: 2px solid var(--border2);
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Register cells ── */
+    td.reg {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      text-align: center;
+      padding: 2px 3px;
+      border: 1px solid var(--bg);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: default;
+      transition: filter 0.1s, background 0.2s, color 0.2s;
+      user-select: none;
+    }
+    td.reg:hover { filter: brightness(1.25); outline: 2px solid rgba(127,127,127,0.6); z-index: 2; position: relative; }
+
+    /* Permission colours */
+    td.perm-r           { background: var(--perm-r);        color: var(--perm-r-text);      }
+    td.perm-r.hard      { background: var(--perm-r-hard);   color: var(--perm-r-hard-text); }
+    td.perm-rw          { background: var(--perm-rw);       color: var(--perm-rw-text);     }
+    td.perm-rw.hard     { background: var(--perm-rw-hard);  color: var(--perm-rw-hard-text);}
+    td.unused           { background: var(--unused-bg);     color: var(--unused-border);    }
+
+    /* ── Search highlight ── */
+    td.highlight {
+      outline: 2px solid var(--highlight) !important;
+      z-index: 3;
+      position: relative;
+    }
+
+    /* ── Stats bar ── */
+    .stats {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--stats-color);
+    }
+
+    /* ── Hover tooltip ── */
+    #reg-tooltip {
+      position: fixed;
+      display: none;
+      pointer-events: none;
+      z-index: 1000;
+      background: var(--tooltip-bg);
+      border: 1px solid var(--tooltip-border);
+      border-radius: 7px;
+      padding: 9px 12px;
+      min-width: 220px;
+      max-width: 360px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--tooltip-text);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    #reg-tooltip .tt-name {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--h1-color);
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    #reg-tooltip .tt-meta {
+      font-size: 11px;
+      color: var(--tooltip-muted);
+      margin-bottom: 5px;
+    }
+    #reg-tooltip .tt-desc {
+      font-size: 11px;
+      color: var(--tooltip-text);
+      border-top: 1px solid var(--tooltip-border);
+      padding-top: 5px;
+      margin-top: 3px;
+      white-space: normal;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>{{ design_name }}</h1>
+  <p class="subtitle">{{ description }}</p>
+
+  <div class="toolbar">
+    <input id="search" type="text" placeholder="Search register name…" autocomplete="off" spellcheck="false">
+    <span id="match-count"></span>
+
+    <!-- Path display toggle -->
+    <div class="btn-group" title="Label display mode">
+      <button id="btn-leaf" class="active" onclick="setLabelMode('leaf')">Leaf</button>
+      <button id="btn-full" onclick="setLabelMode('full')">Full path</button>
+    </div>
+
+    <!-- Theme toggle -->
+    <button id="theme-btn" title="Toggle light/dark theme" onclick="toggleTheme()">☀️</button>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch" id="swatch-r"></div> read-only
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" id="swatch-rw"></div> read-write
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" id="swatch-u" style="border-color:var(--border2);"></div> unused
+      </div>
+      <div class="legend-item" style="font-size:10px; color:var(--text-muted);">
+        darker shade = fixed address &nbsp;|&nbsp; lighter shade = auto-allocated
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="reg-table">
+      <thead>
+        <tr>
+          <th class="col-addr">Address</th>
+          {%- for bit in bit_headers %}
+          <th>{{ bit }}</th>
+          {%- endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {%- for row in rows %}
+        <tr>
+          <td class="addr-cell">{{ row.address }}</td>
+          {%- for cell in row.cells %}
+          {%- if cell.is_unused %}
+          <td class="reg unused"
+              colspan="{{ cell.colspan }}"
+              data-bithigh="{{ cell.bit_high }}"
+              data-bitlow="{{ cell.bit_low }}"></td>
+          {%- else %}
+          <td class="reg perm-{{ cell.permission }}{% if not cell.is_smart %} hard{% endif %}"
+              colspan="{{ cell.colspan }}"
+              data-label="{{ cell.label }}"
+              data-fullpath="{{ cell.full_path }}"
+              data-desc="{{ cell.description }}"
+              data-bithigh="{{ cell.bit_high }}"
+              data-bitlow="{{ cell.bit_low }}"
+              data-perm="{{ cell.permission }}">{{ cell.label }}</td>
+          {%- endif %}
+          {%- endfor %}
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Hover tooltip -->
+  <div id="reg-tooltip">
+    <div class="tt-name" id="tt-name"></div>
+    <div class="tt-meta" id="tt-meta"></div>
+    <div class="tt-desc" id="tt-desc"></div>
+  </div>
+
+  <p class="stats">
+    {{ rows | length }} address words &nbsp;·&nbsp; {{ address_width }}-bit bus width
+  </p>
+
+  <script>
+    const searchInput = document.getElementById('search');
+    const matchCount  = document.getElementById('match-count');
+    const allRegCells    = Array.from(document.querySelectorAll('td.reg[data-label]'));
+    const allCells       = Array.from(document.querySelectorAll('td.reg'));
+    const tooltip     = document.getElementById('reg-tooltip');
+    const ttName      = document.getElementById('tt-name');
+    const ttMeta      = document.getElementById('tt-meta');
+    const ttDesc      = document.getElementById('tt-desc');
+    const theadThs    = Array.from(document.querySelectorAll('#reg-table thead th'));
+
+    /* ── Search ── */
+    searchInput.addEventListener('input', function () {
+      const q = this.value.trim().toLowerCase();
+      let hits = 0;
+      allRegCells.forEach(function (td) {
+        const haystack = (labelMode === 'leaf'
+          ? td.dataset.label
+          : td.dataset.fullpath).toLowerCase();
+        const match = q && haystack.includes(q);
+        td.classList.toggle('highlight', match);
+        if (match) hits++;
+      });
+      matchCount.textContent = q ? (hits + ' match' + (hits !== 1 ? 'es' : '')) : '';
+    });
+
+    /* ── Label mode (leaf / full path) ── */
+    let labelMode = 'leaf';
+    function setLabelMode(mode) {
+      labelMode = mode;
+      document.getElementById('btn-leaf').classList.toggle('active', mode === 'leaf');
+      document.getElementById('btn-full').classList.toggle('active', mode === 'full');
+      allRegCells.forEach(function (td) {
+        td.textContent = mode === 'leaf' ? td.dataset.label : td.dataset.fullpath;
+      });
+      searchInput.dispatchEvent(new Event('input'));
+    }
+
+    /* ── Theme toggle ── */
+    let isDark = true;
+    function updateSwatches() {
+      const cs = getComputedStyle(document.body);
+      document.getElementById('swatch-r').style.background  = cs.getPropertyValue('--perm-r').trim();
+      document.getElementById('swatch-rw').style.background = cs.getPropertyValue('--perm-rw').trim();
+      document.getElementById('swatch-u').style.background  = cs.getPropertyValue('--unused-bg').trim();
+    }
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle('light', !isDark);
+      document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+      updateSwatches();
+    }
+    updateSwatches(); /* initialise on load */
+
+    /* ── Highlight helpers ── */
+    let activeAddrCell = null;
+
+    function clearHighlight() {
+      theadThs.forEach(th => th.classList.remove('bit-active'));
+      if (activeAddrCell) { activeAddrCell.classList.remove('addr-active'); activeAddrCell = null; }
+    }
+
+    function applyHighlight(td) {
+      /* Bit-column headers */
+      const row = td.parentElement;
+      let colOffset = 0;
+      for (const cell of row.cells) {
+        if (cell === td) break;
+        colOffset += cell.colSpan;
+      }
+      for (let i = 0; i < td.colSpan; i++) {
+        const th = theadThs[colOffset + i];
+        if (th) th.classList.add('bit-active');
+      }
+      /* Address cell in the same row */
+      activeAddrCell = row.querySelector('td.addr-cell');
+      if (activeAddrCell) activeAddrCell.classList.add('addr-active');
+    }
+
+    /* ── Tooltip ── */
+    const MARGIN = 14;   /* px gap between cursor and tooltip box */
+
+    function positionTooltip(x, y) {
+      const tw = tooltip.offsetWidth;
+      const th = tooltip.offsetHeight;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      /* prefer right-below cursor; flip if near edges */
+      let left = x + MARGIN;
+      let top  = y + MARGIN;
+      if (left + tw > vw - 8) left = x - tw - MARGIN;
+      if (top  + th > vh - 8) top  = y - th - MARGIN;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top  = top  + 'px';
+    }
+
+    allCells.forEach(function (td) {
+      td.addEventListener('mouseenter', function (e) {
+        const hi      = td.dataset.bithigh;
+        const lo      = td.dataset.bitlow;
+        const isUnused = td.classList.contains('unused');
+
+        if (isUnused) {
+          ttName.textContent = 'unused';
+          ttMeta.textContent =
+            'bits [' + hi + ':' + lo + ']' +
+            (hi === lo ? '' : '  (' + (parseInt(hi) - parseInt(lo) + 1) + '-bit)');
+          ttDesc.style.display = 'none';
+        } else {
+          const name = labelMode === 'leaf' ? td.dataset.label : td.dataset.fullpath;
+          const perm = td.dataset.perm;
+          const desc = td.dataset.desc;
+          ttName.textContent = name;
+          ttMeta.textContent =
+            'bits [' + hi + ':' + lo + ']' +
+            (hi === lo ? '' : '  (' + (parseInt(hi) - parseInt(lo) + 1) + '-bit)') +
+            '   ' + (perm === 'r' ? 'read-only' : 'read-write');
+          ttDesc.textContent = desc || '—';
+          ttDesc.style.display = desc ? '' : 'none';
+        }
+
+        tooltip.style.display = 'block';
+        positionTooltip(e.clientX, e.clientY);
+        applyHighlight(this);
+      });
+
+      td.addEventListener('mousemove', function (e) {
+        positionTooltip(e.clientX, e.clientY);
+      });
+
+      td.addEventListener('mouseleave', function () {
+        tooltip.style.display = 'none';
+        clearHighlight();
+      });
+    });
+  </script>
+
+</body>
+</html>

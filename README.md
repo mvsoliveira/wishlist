@@ -10,14 +10,12 @@ Wishlist addresses a common pain point in FPGA/ASIC-based systems: interfacing s
 
 | Output | Description |
 |--------|-------------|
-| `*_pkg.vhd` | VHDL package — hierarchical records for status and control |
-| `*_pkg.sv` | SystemVerilog package — equivalent `typedef struct` definitions |
-| `*_address_decoder.vhd` | VHDL address decoder entity + RTL |
-| `*_address_decoder.sv` | SystemVerilog address decoder module |
-| `*_instantiation.vhd/.sv` | Example instantiation / stimulus file |
+| `*_pkg.vhd` / `*_pkg.sv` | VHDL package / SystemVerilog package — hierarchical records and `typedef struct` definitions |
+| `*_address_decoder.vhd` / `*_address_decoder.sv` | VHDL / SystemVerilog address decoder entity with full read-write RTL |
+| `*_instantiation.vhd` / `*_instantiation.sv` | Example instantiation and self-test stimulus file |
 | `*_backannotated.yaml` | YAML with computed addresses and masks written back |
 | `*_uhal.xml` | uHAL register tree for IPbus-based systems |
-| `*_address_space.htm` | HTML visual register map with color-coded allocation |
+| `*_address_space.html` | Interactive HTML register map — dark/light theme, hover tooltips, bit-range highlights, live search |
 
 ---
 
@@ -56,13 +54,12 @@ For simulation support (cocotb + AXI-Lite extension):
 pip install cocotb cocotbext-axi
 ```
 
-Alternatively, using the conda environment from the repository:
+Alternatively, using a conda environment:
 
 ```bash
-git clone https://github.com/mvsoliveira/wishlist.git
-conda create --name wishlist --file wishlist/requirements.txt -c conda-forge -y
+conda create -n wishlist -y
 conda activate wishlist
-pip install edawishlist cocotbext-axi
+pip install edawishlist cocotb cocotbext-axi
 ```
 
 ---
@@ -110,19 +107,20 @@ firmware/
   mydesign_backannotated.yaml
 software/
   mydesign_uhal.xml
-  mydesign_address_space.htm
+  mydesign_address_space.html
 ```
 
-The automatically generated **address table** for the example above (rendered as HTML) looks like this — Wishlist packs registers densely and spans multi-word nodes across addresses automatically:
+Wishlist also generates an **interactive HTML register map** (`*_address_space.html`) — open it in any browser:
 
-```
-       31  30  29  28  27  26  ...  6   5   4   3   2   1   0
- 0x0 │pll_│pll_│sys_│task│task│         (unused)
-     │lock│rst │rst │_sta│_don│
- 0x1 │          snapshot_output(35 downto 6)                 │
- 0x2 │snapshot_output(5 downto 0)  │snap│    (unused)        │
-     │                             │_en │                    │
-```
+![Address Map](img/address_map_light.png)
+
+The HTML file includes:
+- **Color-coded cells** — purple for read-only, blue for read-write; darker shade = fixed address, lighter = auto-allocated
+- **Hover tooltip** — shows full register path, bit range, width, permission, and description
+- **Bit-range highlight** — hovering a cell highlights the corresponding bit-index columns and address row
+- **Live search** — filter registers by name with match count
+- **Leaf / Full path toggle** — switch cell labels between leaf name and full hierarchical path
+- **Dark / Light theme toggle** — both themes with matching legend swatches
 
 ---
 
@@ -130,22 +128,22 @@ The automatically generated **address table** for the example above (rendered as
 
 ### VHDL Package
 
-For the hierarchical example (`example.yaml`, included in the repo):
+For the hierarchical example (`signal_processor.yaml`, included in the repo):
 
 ```yaml
 children:
-  - name: user_code
+  - name: fir_filter_bank
     children:
-      - name: pu
+      - name: channel
         length: 2          # replicated ×2
         children:
           - name: fir
             children:
-              - name: SC
+              - name: sensor
                 length: 6  # replicated ×6
                 children:
-                  - {name: tap,  length: 4, width: 129, permission: rw}
-                  - {name: rate, length: 4, width: 33,  permission: r}
+                  - {name: tap_coeff, length: 4, width: 16, permission: rw}
+                  - {name: data_rate,            width: 16, permission: r}
   - {name: pll_lock, width: 1, permission: r}
 ```
 
@@ -382,9 +380,9 @@ children:
   - {name: snapshot_enable, width: 1,  permission: rw}   # packed into word 2
 ```
 
-Resulting address layout:
+Resulting address layout — Wishlist packs all registers into 3 words and spans `snapshot_output` automatically across words 1 and 2 (`0xA0010004` and `0xA0010008`):
 
-![Address map](img/address_map.svg)
+![Address Map](img/packing_dark.png)
 
 Unused bits are **pruned away** — no physical register storage is allocated for them.
 
@@ -704,6 +702,15 @@ If you have an existing IPbus XML register table, Wishlist can convert it to YAM
 
 ```bash
 python -m edawishlist.ipbus2whishlist existing.xml > converted.yaml
+```
+
+---
+
+## Building and Uploading to PyPI
+
+```bash
+python3 -m build
+python3 -m twine upload dist/*
 ```
 
 ---

@@ -9,7 +9,7 @@ from edawishlist.memory import memory, get_register_bits_lists
 from copy import deepcopy
 import re
 import os
-from edawishlist.report import formatting
+from edawishlist.report import build_address_map
 import xml.dom.minidom
 import pathlib
 import sys
@@ -100,7 +100,6 @@ class wishlist(memory):
         self.generate_uhal_file()
         # Generating address decoder tables and VHDL code
         self.address_decoder = pd.concat(self.address_decoder_list)
-        self.address_decoder.to_html(f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_decoder_verbose.htm")
         self.generate_file(filepath='pkg.vhd.jinja2')
         self.generate_file(filepath='pkg.sv.jinja2')
         self.generate_file(filepath='address_decoder.vhd.jinja2')
@@ -114,13 +113,14 @@ class wishlist(memory):
         # self.generate_vhdl_file(template="vhdl_accumulators.jinja2", suffix='accumulators')
         # Dropping unused address offsets
         self.space = self.space.dropna(how='all')
-        self.space_style = self.space_style.loc[self.space.index,:]
-        # Formatting space and its style
-        self.space, self.space_style = formatting(self.space, self.space_style, self.wishlist_dict)
-        # Creating styler object from dataframe with values and dataframe with CSS string
-        self.update_style()
-        # Rendering styler object
-        self.space_styled.hide(axis="index").to_html(buf=f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_address_space.htm")
+        self.space_style = self.space_style.loc[self.space.index, :]
+        # Render HTML address map via Jinja2 template
+        address_map = build_address_map(self.space, self.space_style, self.wishlist_dict, self.tree)
+        template = self.environment.get_template('address_space.html.jinja2')
+        content = template.render(**address_map)
+        html_path = f"{self.wishlist_dict['software_path']}/{self.wishlist_dict['name'].lower()}_address_space.html"
+        with open(html_path, mode="w") as f:
+            f.write(content)
         #self.space.fillna('').to_latex(buf=f"{self.wishlist_dict['firmware_path']}/{self.wishlist_dict['name'].lower()}_address_space.latex",label=self.wishlist_dict['name'].lower(), index=False, longtable=True)
 
     def read_input_file(self):
