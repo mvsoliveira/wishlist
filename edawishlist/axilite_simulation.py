@@ -9,8 +9,7 @@ from operator import attrgetter
 import cocotb
 import logging
 from cocotbext.axi import AxiBus, AxiLiteBus, AxiMaster, AxiLiteMaster, AxiLiteSlave, AxiSlave, AxiResp
-from edawishlist.rtl_simulation import read_tree, write_node, read_node
-from edawishlist.node import write, word_mask
+from edawishlist.node import read_tree, write_node, read_node, write, word_mask
 
 
 async def cycle(axi_master, address, mask, read_mode, write_values):

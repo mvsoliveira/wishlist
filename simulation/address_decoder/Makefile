@@ -1,21 +1,25 @@
-SIM ?= questa
-GUI ?= 0
-TOPLEVEL_LANG ?= vhdl
-DESIGN ?= l1calogfex
-VCOM_ARGS=-2008
-export COCOTB_RESOLVE_X=RANDOM
+SIM            ?= verilator
+DESIGN         ?= signalprocessor
 
-PWD=$(shell pwd)
+PWD     := $(shell pwd)
+FIRMWARE := $(PWD)/../../firmware
 
-export PYTHONPATH := $(PWD)/../../edawishlist:$(PYTHONPATH)
+export PYTHONPATH := $(PWD)/../../:$(PYTHONPATH)
 
-VHDL_SOURCES = $(PWD)/../../firmware/$(DESIGN)_pkg.vhd
-VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_address_decoder.vhd
-VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_instantiation.vhd
+COMPILE_ARGS += -Wall
+COMPILE_ARGS += -Wno-EOFNEWLINE
+COMPILE_ARGS += -Wno-IMPORTSTAR
+COMPILE_ARGS += -Wno-WIDTHEXPAND
+COMPILE_ARGS += --public-flat-rw
 
-export BACKANNOTATED_YAML := $(PWD)/../../firmware/$(DESIGN)_backannotated.yaml
+# signalprocessor_pkg.sv must come first so package types are defined before use
+VERILOG_SOURCES  = $(FIRMWARE)/$(DESIGN)_pkg.sv
+VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_address_decoder.sv
+VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_instantiation.sv
 
-TOPLEVEL := $(DESIGN)_address_decoder
-MODULE   := rtl_simulation
+export BACKANNOTATED_YAML := $(FIRMWARE)/$(DESIGN)_backannotated.yaml
+
+TOPLEVEL := $(DESIGN)_instantiation
+MODULE   := edawishlist.wishbone_simulation
 
 include $(shell cocotb-config --makefiles)/Makefile.sim

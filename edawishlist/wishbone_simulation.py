@@ -12,8 +12,8 @@ from cocotb._bridge import resume
 from cocotb.clock import Clock
 from cocotb.regression import TestFactory
 from cocotb.triggers import RisingEdge, ReadOnly
-from edawishlist.node import read_node, write_node, word_mask
-from edawishlist.utils import get_logger, registers_to_node, node_to_register
+from edawishlist.node import read_node, write_node, word_mask, read_tree
+from edawishlist.utils import get_logger
 
 
 def make_cycle(clk='clk_i', read='read_i', write='write_i',
@@ -91,29 +91,8 @@ class WishboneNode(Node):
         super().__init__(name, **kwargs)
         self.logger = get_logger(self.path_name, logging.INFO)
 
-    @property
-    def bus_mask(self):
-        return word_mask(self.bus_width)
-
-    def read_words(self):
-        return resume(self.cycle)(
-            self.dut, self.address, self.mask, read_mode=1, write_values=None
-        )
-
-    def write_words(self, data):
-        return resume(self.cycle)(
-            self.dut, self.address, self.mask, read_mode=0, write_values=data
-        )
-
     def read(self):
-        read_values = self.read_words()
-        self.logger.debug(
-            f'Reading {self.path_name} @ {[hex(a) for a in self.address]}'
-            f' → {read_values}'
-        )
-        return registers_to_node(
-            self.address, self.mask, read_values, self.bus_width, self.logger
-        )
+        return resume(read_node)(self.dut, self, self.bus_width, self.logger, self.cycle)
 
     def write(self, value):
         if self.permission != 'rw':
@@ -121,17 +100,7 @@ class WishboneNode(Node):
                 f'Attempted write to read-only node {self.path_name}'
             )
             raise PermissionError(f'{self.path_name} is read-only')
-        # Read-modify-write if any mask bit is 0
-        if self.mask != [self.bus_mask] * len(self.mask):
-            read_values = self.read_words()
-        else:
-            read_values = [0] * len(self.mask)
-        write_values = node_to_register(
-            value, self.address, self.mask, read_values, self.bus_width, self.logger
-        )
-        self.logger.debug(f'Writing {self.path_name} ← {write_values}')
-        self.write_words(write_values)
-        return True
+        return resume(write_node)(self.dut, self, value, self.bus_width, self.logger, self.cycle)
 
 
 async def wb_register_test(dut, logger, tree, clk_signal='clk_i',
@@ -146,13 +115,11 @@ async def wb_register_test(dut, logger, tree, clk_signal='clk_i',
     the matching DUT status port, then reads back every leaf and asserts it
     matches the applied stimulus.
     """
-    from operator import attrgetter
-
     cycle = make_cycle(clk_signal, read_signal, write_signal,
                        address_signal, data_in_signal, data_out_signal)
 
     cocotb.start_soon(Clock(getattr(dut, clk_signal), clk_period_ns,
-                            units='ns').start(start_high=False))
+                            unit='ns').start(start_high=False))
 
     getattr(dut, read_signal).value  = 0
     getattr(dut, write_signal).value = 0
@@ -167,14 +134,11 @@ async def wb_register_test(dut, logger, tree, clk_signal='clk_i',
     if shufle_order:
         nodes = random.sample(nodes, len(nodes))
     for node in nodes:
-        node.stimulus = random.randint(0, 2 ** node.width - 1)
         logger.info(f'Applying stimulus for {node.path_name}')
-        if node.permission == 'r':
-            path = node.path_name.lower().split('/')
-            signal = attrgetter(f"{path[1]}_status_i.{'.'.join(path[2:])}")(dut)
-            signal.value = node.stimulus
-        else:
+        if node.permission == 'rw':
+            node.stimulus = random.randint(0, 2 ** node.width - 1)
             await write_node(dut, node, node.stimulus, bus_width, logger, cycle)
+        # r nodes: stimulus is taken from the backannotated YAML (driven by instantiation)
 
     # Verify stimuli
     if shufle_order:
@@ -184,3 +148,18 @@ async def wb_register_test(dut, logger, tree, clk_signal='clk_i',
         value = await read_node(dut, node, bus_width, logger, cycle)
         assert value == node.stimulus, (
             f'{node.path_name}: got 0x{value:x}, expected 0x{node.stimulus:x}')
+
+
+@cocotb.test()
+async def register_test(dut):
+    """Read/write stress test driven by the backannotated YAML (set via BACKANNOTATED_YAML)."""
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    tree = read_tree(logger)
+    await wb_register_test(dut, logger, tree,
+                           clk_signal='clk',
+                           read_signal='read',
+                           write_signal='write',
+                           address_signal='address',
+                           data_in_signal='data_in',
+                           data_out_signal='data_out')

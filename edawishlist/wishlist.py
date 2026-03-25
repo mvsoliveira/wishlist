@@ -333,6 +333,8 @@ class HexInt(int): pass
 
 
 def representer(dumper, data):
+    if data == 0:
+        return yaml.ScalarNode('tag:yaml.org,2002:int', '0x00000000')
     n_bits = np.ceil(np.log2(data))
     if n_bits <= 32:
         n_hex = 8
