@@ -9,6 +9,12 @@ def _strip_bit_index(value):
     return re.sub(r'\(\d+\)$', '', str(value))
 
 
+def _extract_bit_index(value):
+    """'/Design/reg(35)' -> 35, '/Design/reg' -> None"""
+    m = re.search(r'\((\d+)\)$', str(value))
+    return int(m.group(1)) if m else None
+
+
 def _parse_style(style_str):
     """Extract (permission, is_smart) from the CSS string stored in space_style."""
     s = str(style_str)
@@ -85,13 +91,18 @@ def build_address_map(space, space_style, wishlist_dict, tree=None):
                 info = node_info.get(owner_key, {'description': '', 'permission': permission or ''})
                 label = owner_key.split('/')[-1]
 
+                # Use field-level bit indices (from cell value annotations like reg(35))
+                # so that multi-row fields show the correct per-row bit range in the tooltip.
+                field_bit_high = _extract_bit_index(cell_val)
+                field_bit_low  = _extract_bit_index(row[bit - colspan + 1])
+
                 cells.append({
                     'label':       label,
                     'full_path':   owner_key,
                     'description': info.get('description', ''),
                     'permission':  info.get('permission', permission or ''),
-                    'bit_high':    bit,
-                    'bit_low':     bit - colspan + 1,
+                    'bit_high':    field_bit_high if field_bit_high is not None else bit,
+                    'bit_low':     field_bit_low  if field_bit_low  is not None else bit - colspan + 1,
                     'colspan':     colspan,
                     'is_unused':   False,
                     'is_smart':    is_smart,
