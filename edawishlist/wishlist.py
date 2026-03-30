@@ -277,7 +277,7 @@ class wishlist(memory):
             search_paths.insert(0, str(self.external_templates_path))
         def to_binary(value, width):
             return format(int(value), f'0{width}b')
-        self.environment = Environment(loader=FileSystemLoader(search_paths))
+        self.environment = Environment(loader=FileSystemLoader(search_paths), keep_trailing_newline=True)
         self.environment.filters['to_binary'] = to_binary
 
     def generate_vhdl_file(self, template, suffix, ext='vhd'):

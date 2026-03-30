@@ -52,8 +52,7 @@ typedef {{ root }}_{{ flat }}_t {{ root }}_{{ flat }}_array_t [{{ node.length - 
 {%- endfor -%}
 {%- if ns.fields -%}
 {%- set flat_current = current[1:] | join('_') -%}
-{%- set rec_name = root ~ '_' ~ hier ~ '_' ~ flat_current ~ '_t' %}
-
+{%- set rec_name = root ~ '_' ~ hier ~ '_' ~ flat_current ~ '_t' -%}
 typedef struct {
 {%- for fname, ftype in ns.fields %}
     {{ ftype }} {{ fname }};
@@ -62,6 +61,7 @@ typedef struct {
 {%- if node.get('length') %}
 typedef {{ rec_name }} {{ root }}_{{ hier }}_{{ flat_current }}_array_t [{{ node.length - 1 }}:0];
 {%- endif -%}
+{{ '\n\n' }}
 {%- endif -%}
 {%- endif -%}
 {%- endfor -%}
@@ -80,8 +80,7 @@ typedef {{ rec_name }} {{ root }}_{{ hier }}_{{ flat_current }}_array_t [{{ node
 {%- set ns.fields = ns.fields + [(cname, ftype)] -%}
 {%- endif -%}
 {%- endfor -%}
-{%- if ns.fields %}
-
+{%- if ns.fields -%}
 typedef struct {
 {%- for fname, ftype in ns.fields %}
     {{ ftype }} {{ fname }};
@@ -94,11 +93,12 @@ typedef struct {
 // Description : {{ description }}
 package {{ name.lower() }}_pkg;
 // register data types
-{{- render_subtypes(children, name.lower(), [name.lower()]) }}
+{{- render_subtypes(children, name.lower(), [name.lower()]) -}}
+
 // status hierarchy data types
-{{- render_hierarchy(children, name.lower(), 'status', [name.lower()]) -}}
-{{- render_top_record(children, name.lower(), 'status') -}}
+{{ render_hierarchy(children, name.lower(), 'status', [name.lower()]) -}}
+{{- render_top_record(children, name.lower(), 'status') }}
 // control hierarchy data types
-{{- render_hierarchy(children, name.lower(), 'control', [name.lower()]) -}}
-{{- render_top_record(children, name.lower(), 'control') -}}
+{{ render_hierarchy(children, name.lower(), 'control', [name.lower()]) -}}
+{{- render_top_record(children, name.lower(), 'control') }}
 endpackage : {{ name.lower() }}_pkg
