@@ -1,107 +1,109 @@
-import os
-import yaml
-from bigtree import nested_dict_to_tree, preorder_iter, print_tree
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, ReadOnly
-from cocotb.regression import TestFactory
-import random
-from operator import attrgetter
-import cocotb
+"""
+AXI4-Lite simulation helpers for edawishlist.
+
+Mirrors wishbone_simulation.py but drives a cocotbext-axi AxiLiteMaster
+instead of a raw wishbone-style bus.  The software layer (wishlist_robot,
+xmem.py, etc.) is entirely bus-agnostic: only the node class changes.
+"""
 import logging
-from cocotbext.axi import AxiBus, AxiLiteBus, AxiMaster, AxiLiteMaster, AxiLiteSlave, AxiSlave, AxiResp
-from edawishlist.node import read_tree, write_node, read_node, write, word_mask
+import warnings
+
+from bigtree import Node
+from cocotb._bridge import resume
+from cocotbext.axi import AxiResp
+
+# cocotbext-axi 0.1.28 uses several cocotb 1.x APIs that cocotb 2.0 deprecated
+# (Event.set(data), handle.set(), signal.value_change, ...).  Suppress all of
+# them until the library is updated.
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module=r"cocotbext\.",
+)
+
+from edawishlist.node import read_node, write_node
+from edawishlist.utils import get_logger
 
 
-async def cycle(axi_master, address, mask, read_mode, write_values):
+async def axilite_cycle(master, addresses, mask, read_mode, write_values):
+    """
+    cycle() implementation backed by a cocotbext-axi AxiLiteMaster.
+
+    Matches the contract expected by node.read_node / node.write_node:
+        cycle(driver, addresses, mask, read_mode, write_values)
+
+    One AXI4-Lite transaction is issued per word in *addresses*.
+    Reads:  returns list[int] (one masked integer per word).
+    Writes: returns True.
+
+    Parameters
+    ----------
+    master       : AxiLiteMaster  — cocotbext.axi bus driver
+    addresses    : list[int]      — word-aligned byte addresses
+    mask         : list[int]      — per-word read masks
+    read_mode    : bool / int     — True → read, False → write
+    write_values : list[int] | None  — per-word values (None for reads)
+    """
     read_values = []
-    # Iterating for one clock cycle more than the number of words in the node because address decoder outputs is registered
-    # Also delaying mask for one iteration because the mask is needed in the iteration i+1
-    for i, (addr, msk) in enumerate(zip(address, mask)):
-        # Write Stage of the clock cycle
-        if not read_mode:
-            bytes = int(write_values[i]).to_bytes(4, byteorder='little')
-            # unpacking write response, user is returned only with AXI and not AXI lite
-            (address_resp, length, resp, *user) = await axi_master.write(addr, bytes)
+    for i, addr in enumerate(addresses):
+        if read_mode:
+            result = await master.read(addr, 4)
+            if result.resp != AxiResp.OKAY:
+                raise RuntimeError(
+                    f'AXI-Lite read  0x{addr:08X} → {result.resp}'
+                )
+            integer = int.from_bytes(result.data, 'little')
+            read_values.append(integer & mask[i])
         else:
-            # unpacking read response, user is returned only with AXI and not AXI lite
-            (address_resp, data, resp, *user) = await axi_master.read(addr, 4)
-            integer = int.from_bytes(data, byteorder='little', signed=False)
-            read_values.append(integer & msk)
-        if resp != AxiResp.OKAY:
-            raise Exception(f'AXI transfer with read_mode = {read_mode}, addr= 0x{addr:X} returned response code {resp}')
-    if read_mode:
-        return read_values
-    else:
-        return True
+            result = await master.write(
+                addr, int(write_values[i]).to_bytes(4, 'little')
+            )
+            if result.resp != AxiResp.OKAY:
+                raise RuntimeError(
+                    f'AXI-Lite write 0x{addr:08X} → {result.resp}'
+                )
+    return read_values if read_mode else True
 
 
-@cocotb.coroutine
-async def axlite_test(dut, axi_master, bus_width, logger, nodes, shufle_order):
-    # Writing stimullus
-    if shufle_order: random.shuffle(nodes)
-    for node in nodes:
-        path = node.path_name.lower().split('/')
-        if node.permission == 'rw':
-            logger.info(f'Writing stimulus for {node.path_name}')
-            node.stimulus = random.randint(0, 2 ** node.width - 1)
-            ack = await write_node(axi_master, node, node.stimulus, bus_width, logger, cycle)
+class AxiLiteNode(Node):
+    """
+    Node backed by a cocotbext-axi AxiLiteMaster for cocotb simulations.
 
-    # Checking stimulus
-    if shufle_order: random.shuffle(nodes)
-    for node in nodes:
-        logger.info(f'Checking node: {node.path_name}, permission: {node.permission}')
-        node_value = await read_node(axi_master, node, bus_width, logger, cycle)
-        logger.debug(f'Stimulus = 0x{node.stimulus:X}, actual= 0x{node_value:X}')
-        assert node.stimulus == node_value, f'Actual data for Node {node.path_name} 0x{node_value:X} is different than applied stimulus 0x{node.stimulus:X}'
+    Mirrors WishboneNode from wishbone_simulation.py.  Set the class-level
+    'master' attribute to an AxiLiteMaster instance inside the test coroutine:
 
+        from cocotbext.axi import AxiLiteBus, AxiLiteMaster
+        from edawishlist.axilite_simulation import AxiLiteNode
 
-@cocotb.coroutine
-async def axi_initialization(axi_master, bus_width, logger, nodes):
-    logger.info(
-        "Initializing rw registers with zeroes, this is needed because the aurora serial stream output is unknown when unititialized registers values are propagated to the core. This causes soft errors to be detected which ultimately causes a calibration error in aurora during simulation. One can't address this situation in the testbench because the unresolved values are causing the issue inside of the DUT, i.e. the Aurora core. This is not need while running in the target because unknown values are propagated as zeroes or random values within the DUT.")
-    bus_mask = word_mask(bus_width)
-    for node in nodes:
-        if node.permission == 'rw':
-            logger.info(f'Initializing node: {node.path_name}, permission: {node.permission}')
-            ack = await write(axi_master, node.address, [bus_mask] * len(node.address), [0] * len(node.address), cycle)
+        class my_sim_node(AxiLiteNode):
+            master = None   # set per-test
 
+        my_sim_node.master = AxiLiteMaster(
+            AxiLiteBus.from_prefix(dut, "pcie"), dut.clk, dut.rst_n,
+            reset_active_level=0,
+        )
 
-@cocotb.coroutine
-async def register_test(dut, logger, tree, shufle_order=1):
-    """Testing registers"""
-    # Configuring clock
-    cocotb.start_soon(Clock(dut.S_AXI_ACLK, 2, units="ns").start())
-    axilite_master = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.S_AXI_ACLK, dut.S_AXI_ARESETN,
-                                   reset_active_level=False)
+    Pass the subclass as *base_node* to wishlist_robot and it behaves
+    identically to WishboneNode from the software's perspective.
+    """
+    master    = None
+    bus_width = 32
 
-    bus_width = len(dut.Bus2IP_Data)
-    await cycle_reset(dut.S_AXI_ACLK, dut.S_AXI_ARESETN)
-    # Extracting tree of nodes
-    nodes = list(preorder_iter(tree, filter_condition=lambda node: node.is_leaf))
-    # axlite tester
-    await axi_initialization(axilite_master, bus_width, logger, nodes)
-    await axlite_test(dut, axilite_master, bus_width, logger, nodes, shufle_order)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
+        self.logger = get_logger(self.path_name, logging.INFO)
 
+    def read(self):
+        return resume(read_node)(
+            self.master, self, self.bus_width, self.logger, axilite_cycle
+        )
 
-async def cycle_reset(clk, rst):
-    rst.setimmediatevalue(1)
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    rst.value = 0
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-    rst.value = 1
-    await RisingEdge(clk)
-    await RisingEdge(clk)
-
-
-if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    tree = read_tree(logger)
-    # Factory of tests
-    factory = TestFactory(register_test)
-    factory.add_option("shufle_order", [False, True, True, True, True])
-    factory.add_option("logger", [logger])
-    factory.add_option("tree", [tree])
-    factory.generate_tests()
+    def write(self, value):
+        if self.permission != 'rw':
+            self.logger.critical(
+                f'Attempted write to read-only node {self.path_name}'
+            )
+            raise PermissionError(f'{self.path_name} is read-only')
+        return resume(write_node)(
+            self.master, self, value, self.bus_width, self.logger, axilite_cycle
+        )
