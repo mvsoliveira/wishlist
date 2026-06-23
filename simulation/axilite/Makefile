@@ -1,23 +1,25 @@
-SIM ?= questa
-GUI ?= 0
-WAVES ?= 1
-TOPLEVEL_LANG ?= vhdl
-DESIGN ?= example
-VCOM_ARGS=-2008
-export COCOTB_RESOLVE_X=RANDOM
+SIM            ?= verilator
+DESIGN         ?= signalprocessor
 
-PWD=$(shell pwd)
+PWD     := $(shell pwd)
+FIRMWARE := $(PWD)/../../examples/firmware
 
-export PYTHONPATH := $(PWD)/../../edawishlist:$(PYTHONPATH)
-RTL_LIBRARY = axi_lite_ipif_v3_0_4
-VHDL_SOURCES = axi_lite_ipif_v3_0_vh_rfs.vhd
-VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_pkg.vhd
-VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_address_decoder.vhd
-VHDL_SOURCES += $(PWD)/../../firmware/$(DESIGN)_axilite.vhd
+export PYTHONPATH := $(PWD)/../../:$(PYTHONPATH)
 
-export BACKANNOTATED_YAML := $(PWD)/../../firmware/$(DESIGN)_backannotated.yaml
+COMPILE_ARGS += -I$(FIRMWARE)
+COMPILE_ARGS += --timing -DCOCOTB_SIM=1
+COMPILE_ARGS += -Wno-EOFNEWLINE
+COMPILE_ARGS += -Wno-IMPORTSTAR
+COMPILE_ARGS += -Wno-WIDTHEXPAND
+COMPILE_ARGS += --public-flat-rw
 
-TOPLEVEL := $(DESIGN)_axilite
-MODULE   := axilite_simulation
+# pkg.sv must come first so package types are defined before use
+VERILOG_SOURCES  = $(FIRMWARE)/$(DESIGN)_pkg.sv
+VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_address_decoder_axilite.sv
+
+export BACKANNOTATED_YAML := $(FIRMWARE)/$(DESIGN)_backannotated.yaml
+
+TOPLEVEL := $(DESIGN)_address_decoder_axilite
+MODULE   := edawishlist.axilite_simulation
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
