@@ -43,12 +43,23 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
     end else begin
         rd_err <= 1'b0;
         wr_err <= 1'b0;
+        // default assignments — write-only (strobe) fields self-clear each cycle
+{%- set wo_df = address_decoder[address_decoder['permission'] == 'w'] %}
+{%- set ns = namespace(seen=[]) %}
+{%- for _, row in wo_df.iterrows() %}
+{%- set signal = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
+{%- if signal not in ns.seen %}
+{%- set ns.seen = ns.seen + [signal] %}
+        {{ signal }} <= '0; // write-only strobe
+{%- endif %}
+{%- endfor %}
 
         // ── read: decode on SETUP phase so data is ready for ACCESS ──────────
         if (psel_i && !penable_i && !pwrite_i) begin
             rd_data <= '0;
             case (paddr_i)
 {%- set read_df = address_decoder[address_decoder['permission'].str.contains('r')] %}
+{%- set readable_addrs = read_df['address'].unique().tolist() %}
 {%- for addr in read_df['address'].unique() %}
 {%- set group = read_df[read_df['address'] == addr] %}
                 {{ address_width }}'h{{ '%08X' % addr }}: begin
@@ -72,6 +83,10 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
 {%- endif %}
 {%- endfor %}
                 end
+{%- endfor %}
+{%- set wo_addrs = address_decoder[address_decoder['permission'].str.contains('w')]['address'].unique().tolist() %}
+{%- for addr in wo_addrs | reject('in', readable_addrs) %}
+                {{ address_width }}'h{{ '%08X' % addr }}: ; // write-only: rd_data stays '0
 {%- endfor %}
                 default: rd_err <= 1'b1;
             endcase

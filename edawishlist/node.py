@@ -46,6 +46,12 @@ def word_mask(width):
 async def write_node(dut, node, value, bus_width, logger, cycle):
     # Computing the bus mask
     bus_mask = word_mask(bus_width)
+    # Fast path: single full-width word — skip the read step.
+    # This avoids SLVERR on write-only registers and is always correct when
+    # mask covers all bus bits (no other fields share this address word).
+    if len(node.address) == 1 and node.mask[0] == bus_mask:
+        await write(dut, node.address, [bus_mask], [value & bus_mask], cycle)
+        return True
     # Reading all the registers associated with the node with the bus mask
     read_values = await read(dut, node.address, [bus_mask]*len(node.address), cycle)
     # Node LSB (can be higher than bus width)

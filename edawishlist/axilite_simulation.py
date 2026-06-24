@@ -98,12 +98,14 @@ class AxiLiteNode(Node):
         self.logger = get_logger(self.path_name, logging.INFO)
 
     def read(self):
+        if self.permission == 'w':
+            return 0
         return resume(read_node)(
             self.master, self, self.bus_width, self.logger, axilite_cycle
         )
 
     def write(self, value):
-        if self.permission != 'rw':
+        if self.permission == 'r':
             self.logger.critical(
                 f'Attempted write to read-only node {self.path_name}'
             )

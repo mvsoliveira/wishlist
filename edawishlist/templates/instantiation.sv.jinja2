@@ -29,6 +29,8 @@ assign {{ lower_name }}_status.{{ path }} = {{ node.width }}'b{{ bin_val }}; // 
 {% endif -%}
 {% elif node.permission == 'rw' %}
 // = {{ lower_name }}_control.{{ path }};
+{% elif node.permission == 'w' %}
+// = {{ lower_name }}_control.{{ path }}; // write-only
 {% endif -%}
 {% endfor %}
 {{ lower_name }}_address_decoder {{ lower_name }}_address_decoder_inst (

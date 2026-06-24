@@ -229,7 +229,8 @@ class wishlist(memory):
         # creating respective dataframe and appending to the address_decoder_list
         direction = {
             'rw': 'control',
-            'r': 'status',
+            'r':  'status',
+            'w':  'control',
         }
         self.address_decoder_list.append(pd.DataFrame({
             'name': [node.path_name]*len(address_list),

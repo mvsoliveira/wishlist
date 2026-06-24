@@ -17,20 +17,18 @@ class wishlist_axi_node(Node):
 
 
     def read(self):
+        if self.permission == 'w':
+            return 0
         read_values = self.root.axi.read_words(self.offset)
-        # Use efficient logging format
-        #self.logger.debug('Reading values from address 0x%x, offset %s, read values: %s', self.address, self.offset, read_values)
         value = registers_to_node(self.offset, self.mask, read_values, self.bus_width, self.logger)
         return value
 
     def write(self, value):
-        # Correctly check for read-write permission
-        if self.permission != 'rw':
-            # Provide a clear, direct, and non-contradictory error message
+        if self.permission == 'r':
             self.logger.critical(
-                f'Terminating application: Attempted to write to node "{self.path_name}" which has permission "{self.permission}", not "rw".'
+                f'Terminating application: Attempted to write to read-only node "{self.path_name}".'
             )
-            sys.exit(1) # Use a non-zero exit code for errors
+            sys.exit(1)
 
         # Use an efficient and Pythonic check to see if a read-modify-write is needed
         # The all() function short-circuits, avoiding list creation.

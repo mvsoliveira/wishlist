@@ -80,6 +80,8 @@ class memory:
             'hard_allocated_rw' : 'DeepSkyBlue',
             'smart_allocated_r': 'Gold',
             'hard_allocated_r': 'LightGreen',
+            'smart_allocated_w': 'LightSalmon',
+            'hard_allocated_w': 'Salmon',
         }
 
         self.space_style = pd.DataFrame(self.get_css_style(allocated=False), index=self.space.index, columns=self.space.columns)
@@ -210,9 +212,12 @@ class memory:
         # If current bit cursor is greater than 0, just decrement the bit cursor
         if self.bit > 0:
             self.set_bit_cursor(self.bit-1)
-        # Otherwise, increment the address offset and move the bit cursor to the MSB
+        # Otherwise, increment the address offset and move the bit cursor to the MSB.
+        # Guard against overflow when the last register occupies the final address word.
         else:
-            self.address_increment()
+            next_addr = self.address + self.increment
+            if next_addr <= self.end:
+                self.set_address_cursor(next_addr)
             self.set_bit_cursor(self.width - 1)
 
 
