@@ -112,6 +112,18 @@ class AxiLiteNode(Node):
             self.master, self, value, self.bus_width, self.logger, axilite_cycle
         )
 
+    def raw_read(self, address):
+        """Read one 32-bit word at an absolute byte address not in the wishlist tree."""
+        return resume(axilite_cycle)(
+            self.master, [address], [0xFFFFFFFF], True, None
+        )[0]
+
+    def raw_write(self, address, value):
+        """Write one 32-bit word to an absolute byte address not in the wishlist tree."""
+        resume(axilite_cycle)(
+            self.master, [address], [0xFFFFFFFF], False, [value]
+        )
+
 
 async def axilite_register_test(dut, logger, tree, master, clk_period_ns=10):
     """
