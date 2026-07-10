@@ -18,10 +18,14 @@ def _extract_bit_index(value):
 def _parse_style(style_str):
     """Extract (permission, is_smart) from the CSS string stored in space_style."""
     s = str(style_str)
-    if 'Plum'       in s: return 'rw', True
-    if 'DeepSkyBlue' in s: return 'rw', False
-    if 'Gold'        in s: return 'r',  True
-    if 'LightGreen'  in s: return 'r',  False
+    if 'Plum'            in s: return 'rw',  True
+    if 'DeepSkyBlue'     in s: return 'rw',  False
+    if 'Gold'            in s: return 'r',   True
+    if 'LightGreen'      in s: return 'r',   False
+    if 'LightSalmon'     in s: return 'w',   True
+    if 'Salmon'          in s: return 'w',   False
+    if 'MediumAquamarine' in s: return 'rwc', True
+    if 'MediumSeaGreen'   in s: return 'rwc', False
     return None, None
 
 

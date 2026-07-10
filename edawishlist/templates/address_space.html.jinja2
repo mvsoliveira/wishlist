@@ -28,6 +28,10 @@
       --perm-r-hard:  #322659; --perm-r-hard-text:#d6bcfa;
       --perm-rw:      #2a4365; --perm-rw-text:   #bee3f8;
       --perm-rw-hard: #1a365d; --perm-rw-hard-text:#90cdf4;
+      --perm-w:       #652b2b; --perm-w-text:    #fed7d7;
+      --perm-w-hard:  #4d1d1d; --perm-w-hard-text:#feb2b2;
+      --perm-rwc:     #234e52; --perm-rwc-text:  #b2f5ea;
+      --perm-rwc-hard:#1d4044; --perm-rwc-hard-text:#81e6d9;
       --unused-bg:    #232b38; --unused-border:   #2d3748;
       --highlight:    #f6e05e;
       --stats-color:  #4a5568;
@@ -61,6 +65,10 @@
       --perm-r-hard:  #553c9a; --perm-r-hard-text:#ffffff;
       --perm-rw:      #3182ce; --perm-rw-text:   #ffffff;
       --perm-rw-hard: #2b6cb0; --perm-rw-hard-text:#ffffff;
+      --perm-w:       #e05252; --perm-w-text:    #ffffff;
+      --perm-w-hard:  #c53030; --perm-w-hard-text:#ffffff;
+      --perm-rwc:     #38a89d; --perm-rwc-text:  #ffffff;
+      --perm-rwc-hard:#2c7a7b; --perm-rwc-hard-text:#ffffff;
       --unused-bg:    #e8edf3; --unused-border:   #dde3ea;
       --highlight:    #f6ad55;
       --stats-color:  #90a4ae;
@@ -267,6 +275,10 @@
     td.perm-r.hard      { background: var(--perm-r-hard);   color: var(--perm-r-hard-text); }
     td.perm-rw          { background: var(--perm-rw);       color: var(--perm-rw-text);     }
     td.perm-rw.hard     { background: var(--perm-rw-hard);  color: var(--perm-rw-hard-text);}
+    td.perm-w           { background: var(--perm-w);        color: var(--perm-w-text);      }
+    td.perm-w.hard      { background: var(--perm-w-hard);   color: var(--perm-w-hard-text); }
+    td.perm-rwc         { background: var(--perm-rwc);      color: var(--perm-rwc-text);    }
+    td.perm-rwc.hard    { background: var(--perm-rwc-hard); color: var(--perm-rwc-hard-text);}
     td.unused           { background: var(--unused-bg);     color: var(--unused-border);    }
 
     /* ── Search highlight ── */
@@ -348,6 +360,12 @@
       </div>
       <div class="legend-item">
         <div class="legend-swatch" id="swatch-rw"></div> read-write
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" id="swatch-w"></div> write-only
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" id="swatch-rwc"></div> read-write-custom
       </div>
       <div class="legend-item">
         <div class="legend-swatch" id="swatch-u" style="border-color:var(--border2);"></div> unused
@@ -448,9 +466,11 @@
     let isDark = true;
     function updateSwatches() {
       const cs = getComputedStyle(document.body);
-      document.getElementById('swatch-r').style.background  = cs.getPropertyValue('--perm-r').trim();
-      document.getElementById('swatch-rw').style.background = cs.getPropertyValue('--perm-rw').trim();
-      document.getElementById('swatch-u').style.background  = cs.getPropertyValue('--unused-bg').trim();
+      document.getElementById('swatch-r').style.background   = cs.getPropertyValue('--perm-r').trim();
+      document.getElementById('swatch-rw').style.background  = cs.getPropertyValue('--perm-rw').trim();
+      document.getElementById('swatch-w').style.background   = cs.getPropertyValue('--perm-w').trim();
+      document.getElementById('swatch-rwc').style.background = cs.getPropertyValue('--perm-rwc').trim();
+      document.getElementById('swatch-u').style.background   = cs.getPropertyValue('--unused-bg').trim();
     }
     function toggleTheme() {
       isDark = !isDark;
@@ -519,10 +539,16 @@
           const perm = td.dataset.perm;
           const desc = td.dataset.desc;
           ttName.textContent = name;
+          const permText = {
+            'r':   'read-only',
+            'rw':  'read-write',
+            'w':   'write-only',
+            'rwc': 'read-write-custom'
+          }[perm] || perm;
           ttMeta.textContent =
             'bits [' + hi + ':' + lo + ']' +
             (hi === lo ? '' : '  (' + (parseInt(hi) - parseInt(lo) + 1) + '-bit)') +
-            '   ' + (perm === 'r' ? 'read-only' : 'read-write');
+            '   ' + permText;
           ttDesc.textContent = desc || '—';
           ttDesc.style.display = desc ? '' : 'none';
         }

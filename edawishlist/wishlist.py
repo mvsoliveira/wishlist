@@ -144,11 +144,23 @@ class wishlist(memory):
             yaml.add_representer(HexInt, representer)
             yaml.dump(dictionary, file, sort_keys=False)
 
+    # Supported leaf permissions:
+    #   r   — read-only status register (input to the decoder)
+    #   rw  — read-write control register with internal storage and readback
+    #   w   — write-only strobe (self-clearing control output, reads as 0)
+    #   rwc — read-write-custom: no internal storage; the decoder exposes
+    #         re/we/wdata in the control struct and takes rdata from the
+    #         status struct, so the register behaviour is implemented by
+    #         custom user logic
+    PERMISSIONS = ('r', 'rw', 'w', 'rwc')
+
     def create_tree(self):
         self.tree = nested_dict_to_tree(self.wishlist_dict)
         for node in preorder_iter(self.tree):
             if re.match('^(?!.*__)[a-zA-Z][\w]*[^_]$', node.name) is None:
                 raise ValueError(f'Node name {node.name} in {node.path_name} is not a valid VHDL indentifier. Please change the name.')
+            if node.is_leaf and getattr(node, 'permission', None) not in self.PERMISSIONS:
+                raise ValueError(f'Node {node.path_name} has permission={getattr(node, "permission", None)!r}. Supported permissions are {self.PERMISSIONS}.')
 
     def flattening(self):
         # Flattening tree
@@ -228,9 +240,10 @@ class wishlist(memory):
         address_list, address_bits_lists = self.allocate_from_width(width=node.width, name=node.path_name, permission=node.permission, smart=smart)
         # creating respective dataframe and appending to the address_decoder_list
         direction = {
-            'rw': 'control',
-            'r':  'status',
-            'w':  'control',
+            'rw':  'control',
+            'r':   'status',
+            'w':   'control',
+            'rwc': 'control',   # write path; read path uses status_member_name
         }
         self.address_decoder_list.append(pd.DataFrame({
             'name': [node.path_name]*len(address_list),
@@ -239,6 +252,10 @@ class wishlist(memory):
             'address_bits_lists': address_bits_lists,
             'register_bits_lists': get_register_bits_lists(address_list, address_bits_lists, node.width),
             'vhdl_member_name': [get_node_names(node, direction=direction[node.permission])['full_name']]*len(address_list),
+            # Status-hierarchy member path for the same node — used by rwc,
+            # whose read data (rdata) lives in the status struct while its
+            # re/we/wdata outputs live in the control struct.
+            'status_member_name': [get_node_names(node, direction='status')['full_name']]*len(address_list),
             'node_width' : [node.width]*len(address_list)
         }))
         # Back-annottating address and mask

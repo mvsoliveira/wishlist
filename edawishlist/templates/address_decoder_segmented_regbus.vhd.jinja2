@@ -157,6 +157,15 @@ begin
 {%- endif %}
 {%- endif %}
 {%- endfor %}
+{%- set rwc_df = address_decoder[address_decoder['permission'] == 'rwc'] %}
+{%- for _, row in rwc_df.iterrows() %}
+{%- set signal = 'int_' + row['vhdl_member_name'] %}
+{%- if signal not in _ns_wo.seen %}
+{%- set _ns_wo.seen = _ns_wo.seen + [signal] %}
+            {{ signal }}.re <= '0'; -- rwc read strobe
+            {{ signal }}.we <= '0'; -- rwc write strobe
+{%- endif %}
+{%- endfor %}
 
 {%- for region_idx in range(FIRST_REGION, LAST_REGION + 1) %}
 {%- set region_start_abs = address + region_idx * REGION_SIZE %}
@@ -178,7 +187,9 @@ begin
 {%- for _, row in group.iterrows() %}
 {%- set addr_bits = row['address_bits_lists'] %}
 {%- set reg_bits  = row['register_bits_lists'] %}
-{%- set signal    = 'int_' + row['vhdl_member_name'] %}
+{%- set is_rwc    = row['permission'] == 'rwc' %}
+{%- set member    = 'int_' + row['vhdl_member_name'] %}
+{%- set signal    = member + '.wdata' if is_rwc else member %}
 {%- set is_vec    = row['node_width'] > 1 %}
 {%- if addr_bits | length == 1 %}
 {%- if is_vec %}
@@ -192,6 +203,9 @@ begin
 {%- else %}
                         {{ signal }} <= pipe_data({{ region_idx }})({{ addr_bits[0] }} downto {{ addr_bits[-1] }});
 {%- endif %}
+{%- endif %}
+{%- if is_rwc %}
+                        {{ member }}.we <= '1'; -- rwc write strobe
 {%- endif %}
 {%- endfor %}
 {%- endfor %}
@@ -213,7 +227,12 @@ begin
 {%- for _, row in group.iterrows() %}
 {%- set addr_bits = row['address_bits_lists'] %}
 {%- set reg_bits  = row['register_bits_lists'] %}
+{%- set is_rwc    = row['permission'] == 'rwc' %}
+{%- if is_rwc %}
+{%- set signal    = 'int_' + row['status_member_name'] + '.rdata' %}
+{%- else %}
 {%- set signal    = 'int_' + row['vhdl_member_name'] %}
+{%- endif %}
 {%- set is_vec    = row['node_width'] > 1 %}
 {%- if addr_bits | length == 1 %}
 {%- if is_vec %}
@@ -227,6 +246,9 @@ begin
 {%- else %}
                         read_data_regions({{ region_idx }})({{ addr_bits[0] }} downto {{ addr_bits[-1] }}) <= {{ signal }};
 {%- endif %}
+{%- endif %}
+{%- if is_rwc %}
+                        int_{{ row['vhdl_member_name'] }}.re <= '1'; -- rwc read strobe
 {%- endif %}
 {%- endfor %}
 {%- endfor %}

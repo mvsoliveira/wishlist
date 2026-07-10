@@ -95,7 +95,7 @@ class WishboneNode(Node):
         return resume(read_node)(self.dut, self, self.bus_width, self.logger, self.cycle)
 
     def write(self, value):
-        if self.permission != 'rw':
+        if 'w' not in self.permission:
             self.logger.critical(
                 f'Attempted write to read-only node {self.path_name}'
             )
@@ -135,7 +135,9 @@ async def wb_register_test(dut, logger, tree, clk_signal='clk_i',
         nodes = random.sample(nodes, len(nodes))
     for node in nodes:
         logger.info(f'Applying stimulus for {node.path_name}')
-        if node.permission == 'rw':
+        if node.permission in ('rw', 'rwc'):
+            # rwc relies on the instantiation loopback (status rdata driven
+            # from control wdata), so write→read-back verifies both paths.
             node.stimulus = random.randint(0, 2 ** node.width - 1)
             await write_node(dut, node, node.stimulus, bus_width, logger, cycle)
         # r nodes: stimulus is taken from the backannotated YAML (driven by instantiation)

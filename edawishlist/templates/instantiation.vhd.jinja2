@@ -33,9 +33,14 @@ begin
 {% endif -%}
 {% elif node.permission == 'rw' %}
 -- <= {{ lower_name }}_control.{{ path }};
+{% elif node.permission == 'rwc' %}
+-- rwc loopback example: read data mirrors the last written data
+{{ lower_name }}_status.{{ path }}.rdata <= {{ lower_name }}_control.{{ path }}.wdata;
+-- <= {{ lower_name }}_control.{{ path }}.we; -- rwc write strobe
+-- <= {{ lower_name }}_control.{{ path }}.re; -- rwc read strobe
 {% endif -%}
 {% endfor %}
-{{ lower_name }}_address_decoder_inst : entity work.{{ lower_name }}_address_decoder
+{{ lower_name }}_address_decoder_inst : entity work.{{ lower_name }}_address_decoder_regbus
 port map(
     clk_i => clk,
     read_i => read,

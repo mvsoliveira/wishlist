@@ -15,7 +15,7 @@ COMPILE_ARGS += --public-flat-rw
 
 # signalprocessor_pkg.sv must come first so package types are defined before use
 VERILOG_SOURCES  = $(FIRMWARE)/$(DESIGN)_pkg.sv
-VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_address_decoder.sv
+VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_address_decoder_regbus.sv
 VERILOG_SOURCES += $(FIRMWARE)/$(DESIGN)_instantiation.sv
 
 export BACKANNOTATED_YAML := $(FIRMWARE)/$(DESIGN)_backannotated.yaml

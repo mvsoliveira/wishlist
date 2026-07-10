@@ -53,6 +53,15 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
         {{ signal }} <= '0; // write-only strobe
 {%- endif %}
 {%- endfor %}
+{%- set rwc_df = address_decoder[address_decoder['permission'] == 'rwc'] %}
+{%- for _, row in rwc_df.iterrows() %}
+{%- set signal = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
+{%- if signal not in ns.seen %}
+{%- set ns.seen = ns.seen + [signal] %}
+        {{ signal }}.re <= 1'b0; // rwc read strobe
+        {{ signal }}.we <= 1'b0; // rwc write strobe
+{%- endif %}
+{%- endfor %}
 
         // ── read: decode on SETUP phase so data is ready for ACCESS ──────────
         if (psel_i && !penable_i && !pwrite_i) begin
@@ -66,7 +75,12 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
 {%- for _, row in group.iterrows() %}
 {%- set addr_bits = row['address_bits_lists'] %}
 {%- set reg_bits  = row['register_bits_lists'] %}
+{%- set is_rwc    = (row['permission'] == 'rwc') %}
+{%- if is_rwc %}
+{%- set signal    = 'int_' + row['status_member_name'].replace('(', '[').replace(')', ']') + '.rdata' %}
+{%- else %}
 {%- set signal    = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
+{%- endif %}
 {%- set is_vector = (row['node_width'] > 1) %}
 {%- if addr_bits | length == 1 %}
 {%- if is_vector %}
@@ -80,6 +94,9 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
 {%- else %}
                     rd_data[{{ addr_bits[0] }}:{{ addr_bits[-1] }}] <= {{ signal }};
 {%- endif %}
+{%- endif %}
+{%- if is_rwc %}
+                    int_{{ row['vhdl_member_name'].replace('(', '[').replace(')', ']') }}.re <= 1'b1; // rwc read strobe
 {%- endif %}
 {%- endfor %}
                 end
@@ -102,7 +119,9 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
 {%- for _, row in group.iterrows() %}
 {%- set addr_bits = row['address_bits_lists'] %}
 {%- set reg_bits  = row['register_bits_lists'] %}
-{%- set signal    = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
+{%- set is_rwc    = (row['permission'] == 'rwc') %}
+{%- set member    = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
+{%- set signal    = member + '.wdata' if is_rwc else member %}
 {%- set is_vector = (row['node_width'] > 1) %}
 {%- set byte_lane = (addr_bits[-1] // 8) %}
                     if (pstrb_i[{{ byte_lane }}]) begin
@@ -118,6 +137,9 @@ always_ff @(posedge pclk_i or negedge preset_ni) begin
 {%- else %}
                         {{ signal }} <= pwdata_i[{{ addr_bits[0] }}:{{ addr_bits[-1] }}];
 {%- endif %}
+{%- endif %}
+{%- if is_rwc %}
+                        {{ member }}.we <= 1'b1; // rwc write strobe
 {%- endif %}
                     end
 {%- endfor %}

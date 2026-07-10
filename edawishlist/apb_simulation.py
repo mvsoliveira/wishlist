@@ -125,7 +125,7 @@ class APBNode(Node):
         )
 
     def write(self, value):
-        if self.permission != 'rw':
+        if 'w' not in self.permission:
             self.logger.critical(
                 f'Attempted write to read-only node {self.path_name}'
             )

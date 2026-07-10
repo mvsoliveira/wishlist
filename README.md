@@ -35,6 +35,7 @@ Wishlist addresses a common pain point in FPGA/ASIC-based systems: interfacing s
   - [Back-Annotated YAML and Backward Compatibility](#4-back-annotated-yaml-and-backward-compatibility)
   - [Customizable via Jinja2 Templates](#5-customizable-via-jinja2-templates)
   - [Self-Testing FW and SW Routines](#6-self-testing-fw-and-sw-routines)
+  - [Register Permissions](#7-register-permissions)
 - [Wishlist Robot](#wishlist-robot)
 - [Linux Driver for Zynq / Versal SoCs](#linux-driver-for-zynq--versal-socs)
 - [Cocotb Simulation](#cocotb-simulation)
@@ -718,6 +719,40 @@ Wishlist ships with cocotb-based testbenches that automatically stress-test the 
 - The test is repeated many times, logging any mismatch as a critical error.
 
 Both the Wishbone-like and AXI-Lite testbenches follow this pattern, and they run as part of the CI pipeline of the repository against the included example designs.
+
+### 7. Register Permissions
+
+Every leaf node carries a `permission` attribute selecting how the address decoder implements it:
+
+| Permission | Storage | Read returns | Write does |
+|------------|---------|--------------|------------|
+| `r` | none (input) | the matching member of the **status** struct | — (read-only) |
+| `rw` | in the decoder | the internally stored value | updates the stored value, exposed on the **control** struct |
+| `w` | in the decoder (self-clearing) | 0 | pulses the control-struct member for one cycle (write strobe) |
+| `rwc` | **none — user logic** | `rdata` supplied through the **status** struct | forwards `wdata` + a one-cycle `we` pulse on the **control** struct |
+
+**`rwc` (read-write-custom)** is for registers whose behaviour lives outside the decoder — FIFO access windows, indirect-access ports, read-to-clear counters, or registers with side effects. Instead of a plain vector, the leaf expands into a pair of records:
+
+```systemverilog
+// control struct (decoder output)
+typedef struct {
+    logic re;                 // one-cycle pulse when the register is read
+    logic we;                 // one-cycle pulse when the register is written
+    mydesign_fifo_window_t wdata;  // captured write data, held until the next write
+} mydesign_fifo_window_control_t;
+
+// status struct (decoder input)
+typedef struct {
+    mydesign_fifo_window_t rdata;  // read data supplied by user logic
+} mydesign_fifo_window_status_t;
+```
+
+```yaml
+children:
+  - {name: fifo_window, width: 32, permission: rwc, description: FIFO access window}
+```
+
+The `re` pulse fires on every bus read of the register (e.g. to pop a FIFO or clear a counter) and `we` fires on every bus write; for registers spanning multiple 32-bit words the strobes pulse once per word accessed. The generated instantiation example closes the loop with `rdata = wdata`, which is also how the cocotb self-tests verify both directions through the bus.
 
 ---
 

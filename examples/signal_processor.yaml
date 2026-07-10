@@ -84,6 +84,24 @@ children:
         width: 1
         permission: rw
 
+  # ── Custom (rwc) registers — implemented by user logic ────────────────────
+  - name: custom_ctrl
+    description: Read-write-custom registers; the decoder exposes re/we/wdata (control) and rdata (status) and the register behaviour lives in user logic
+    children:
+      - name: fifo_window
+        description: FIFO access window; a write pushes wdata qualified by we, a read pops via re and returns rdata from the FIFO head
+        width: 32
+        permission: rwc
+      - name: threshold
+        description: Comparator threshold register maintained in user logic
+        width: 12
+        permission: rwc
+      - name: lane_cfg
+        description: Per-lane configuration register maintained in user logic
+        length: 2
+        width: 8
+        permission: rwc
+
   # ── Frame synchronisation ──────────────────────────────────────────────────
   - name: sync_ctrl
     description: Frame synchronisation and data-refresh control

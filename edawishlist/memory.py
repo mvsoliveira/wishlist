@@ -82,6 +82,8 @@ class memory:
             'hard_allocated_r': 'LightGreen',
             'smart_allocated_w': 'LightSalmon',
             'hard_allocated_w': 'Salmon',
+            'smart_allocated_rwc': 'MediumAquamarine',
+            'hard_allocated_rwc': 'MediumSeaGreen',
         }
 
         self.space_style = pd.DataFrame(self.get_css_style(allocated=False), index=self.space.index, columns=self.space.columns)

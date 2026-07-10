@@ -1,6 +1,6 @@
 {%- macro has_perm_strict(node, hier) -%}
 {%- if 'permission' in node -%}
-  {%- if hier == 'status' and node.permission == 'r' %}true
+  {%- if hier == 'status' and node.permission in ['r', 'rwc'] %}true
   {%- elif hier == 'control' and 'w' in node.permission %}true
   {%- endif -%}
 {%- else -%}
@@ -22,8 +22,23 @@ typedef logic {{ root }}_{{ flat }}_t;
 {%- else %}
 typedef logic [{{ w - 1 }}:0] {{ root }}_{{ flat }}_t;
 {%- endif -%}
+{%- if node.permission == 'rwc' %}
+typedef struct {
+    logic re;
+    logic we;
+    {{ root }}_{{ flat }}_t wdata;
+} {{ root }}_{{ flat }}_control_t;
+typedef struct {
+    {{ root }}_{{ flat }}_t rdata;
+} {{ root }}_{{ flat }}_status_t;
+{%- endif -%}
 {%- if node.get('length') %}
+{%- if node.permission == 'rwc' %}
+typedef {{ root }}_{{ flat }}_control_t {{ root }}_{{ flat }}_control_array_t [{{ node.length - 1 }}:0];
+typedef {{ root }}_{{ flat }}_status_t {{ root }}_{{ flat }}_status_array_t [{{ node.length - 1 }}:0];
+{%- else %}
 typedef {{ root }}_{{ flat }}_t {{ root }}_{{ flat }}_array_t [{{ node.length - 1 }}:0];
+{%- endif -%}
 {%- endif -%}
 {%- else -%}
 {{ render_subtypes(node.get('children', []), root, current) -}}
@@ -43,7 +58,11 @@ typedef {{ root }}_{{ flat }}_t {{ root }}_{{ flat }}_array_t [{{ node.length - 
 {%- set cname = c.name | lower -%}
 {%- set flat = (current + [cname])[1:] | join('_') -%}
 {%- if 'permission' in c -%}
+{%- if c.permission == 'rwc' -%}
+{%- set ftype = root ~ '_' ~ flat ~ '_' ~ hier ~ '_array_t' if c.get('length') else root ~ '_' ~ flat ~ '_' ~ hier ~ '_t' -%}
+{%- else -%}
 {%- set ftype = root ~ '_' ~ flat ~ '_array_t' if c.get('length') else root ~ '_' ~ flat ~ '_t' -%}
+{%- endif -%}
 {%- else -%}
 {%- set ftype = root ~ '_' ~ hier ~ '_' ~ flat ~ '_array_t' if c.get('length') else root ~ '_' ~ hier ~ '_' ~ flat ~ '_t' -%}
 {%- endif -%}
@@ -73,7 +92,11 @@ typedef {{ rec_name }} {{ root }}_{{ hier }}_{{ flat_current }}_array_t [{{ node
 {%- if has_perm_strict(c, hier) | trim -%}
 {%- set cname = c.name | lower -%}
 {%- if 'permission' in c -%}
+{%- if c.permission == 'rwc' -%}
+{%- set ftype = root ~ '_' ~ cname ~ '_' ~ hier ~ '_array_t' if c.get('length') else root ~ '_' ~ cname ~ '_' ~ hier ~ '_t' -%}
+{%- else -%}
 {%- set ftype = root ~ '_' ~ cname ~ '_array_t' if c.get('length') else root ~ '_' ~ cname ~ '_t' -%}
+{%- endif -%}
 {%- else -%}
 {%- set ftype = root ~ '_' ~ hier ~ '_' ~ cname ~ '_array_t' if c.get('length') else root ~ '_' ~ hier ~ '_' ~ cname ~ '_t' -%}
 {%- endif -%}
