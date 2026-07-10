@@ -326,9 +326,14 @@ class wishlist(memory):
             message.write(content)
 
     def generate_all_files(self):
-        template_files = sorted(self.builtin_templates_path.glob('*.jinja2'))
+        # An external templates_path REPLACES the built-in template set: only
+        # the templates present there are rendered, so users control exactly
+        # which output files a project generates.  (The built-in path stays in
+        # the jinja search path for template inheritance/includes.)
         if self.external_templates_path:
-            template_files += sorted(self.external_templates_path.glob('*.jinja2'))
+            template_files = sorted(self.external_templates_path.glob('*.jinja2'))
+        else:
+            template_files = sorted(self.builtin_templates_path.glob('*.jinja2'))
         for template_file in template_files:
             self.generate_file(template_file.name)
 

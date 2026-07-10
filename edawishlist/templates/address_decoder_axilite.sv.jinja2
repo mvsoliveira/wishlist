@@ -184,14 +184,13 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
         rd_data  <= '0;
         rd_err   <= 1'b0;
     end else begin
-        // rwc read strobes self-clear each cycle
 {%- set rwc_rd_df = address_decoder[address_decoder['permission'] == 'rwc'] %}
 {%- set ns_rd = namespace(seen=[]) %}
 {%- for _, row in rwc_rd_df.iterrows() %}
 {%- set signal = 'int_' + row['vhdl_member_name'].replace('(', '[').replace(')', ']') %}
 {%- if signal not in ns_rd.seen %}
 {%- set ns_rd.seen = ns_rd.seen + [signal] %}
-        {{ signal }}.re <= 1'b0;
+        {{ signal }}.re <= 1'b0; // rwc read strobe self-clears each cycle
 {%- endif %}
 {%- endfor %}
         unique case (rd_state)
