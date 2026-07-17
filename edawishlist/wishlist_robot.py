@@ -14,14 +14,32 @@ from pytz import timezone
 
 
 class wishlist_robot(object):
-    def __init__(self, name, yaml_file=None, log_level=logging.INFO,base_node=None):
+    def __init__(self, name, yaml_file=None, log_level=logging.INFO, base_node=None, base_address=0):
+        """
+        Parameters
+        ----------
+        name         : robot/instance name.  Also becomes the tree root name,
+                       so multiple robots built from the same backannotated
+                       YAML get distinct register paths (/memxlat0/..., /memxlat1/...).
+        yaml_file    : backannotated YAML (defaults to $BACKANNOTATED_YAML).
+        base_node    : transport node class (defaults to wishlist_axi_node).
+        base_address : byte offset added to every leaf address.  Combined with
+                       offset-based (base-0) YAMLs, one YAML/decoder pair can
+                       serve any number of identical hardware instances mapped
+                       at different bases by the interconnect.
+        """
         self.logger = get_logger(f'Wishlist Robot {name}', log_level)
         if not yaml_file:
             yaml_file = os.getenv("BACKANNOTATED_YAML")
         self.logger.info(f'Starting robot in {socket.gethostname()} using the register tree shown below loaded from {yaml_file}')
         if not base_node:
             base_node = wishlist_axi_node
-        self.tree = read_tree(yaml_file,base_node)
+        self.tree = read_tree(yaml_file, base_node)
+        if name and name != self.tree.name:
+            self.tree.name = name
+        if base_address:
+            for node in preorder_iter(self.tree, filter_condition=lambda n: n.is_leaf):
+                node.address = [a + base_address for a in node.address]
         log_tree(self.tree, self.logger)
 
     def stress_test(self, nodes=None, N=1000, test_only_rw=False):
